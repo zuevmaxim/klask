@@ -32,9 +32,12 @@ if (!fs.existsSync(DATA_FILE)) {
 
 // ===== CORS =====
 app.use((req, res, next) => {
-    res.setHeader('Access-Control-Allow-Origin', '*'); // allow any origin
+    const origin = req.headers.origin;
+    res.setHeader('Access-Control-Allow-Origin', origin);
+
     res.setHeader('Access-Control-Allow-Headers', 'Authorization, Content-Type'); // allow headers used by fetch + Basic Auth
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS'); // allow GET/POST
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
     if (req.method === 'OPTIONS') return res.sendStatus(200); // preflight
     next();
 });
