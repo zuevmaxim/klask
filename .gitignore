@@ -1,4 +1,4 @@
-/api/.env
+/.env
 /api/data.json
 node_modules
 

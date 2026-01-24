@@ -1,7 +1,7 @@
-require('dotenv').config();
+import express from 'express';
+import dotenv from 'dotenv';
 
-const express = require('express');
-const fs = require('fs');
+dotenv.config(); // load environment variables
 
 const app = express();
 app.use(express.json());
@@ -48,27 +48,44 @@ function basicAuth(req, res, next) {
 
 app.use(basicAuth);
 
-// ===== Data file =====
-const DATA_FILE = './data.json';
-if (!fs.existsSync(DATA_FILE)) {
-    fs.writeFileSync(DATA_FILE, JSON.stringify({
-        players: [],
-        championship: {championId: null, challengerId: null, winsInRow: 0}
-    }, null, 2));
-}
+// ===== AWS S3 =====
+import {S3Client, GetObjectCommand, PutObjectCommand} from '@aws-sdk/client-s3';
 
-// ===== Routes =====
-app.get('/api/state', (req, res) => {
-    const data = fs.readFileSync(DATA_FILE, 'utf8');
-    res.json(JSON.parse(data));
+const s3 = new S3Client({
+    region: process.env.AWS_REGION, credentials: {
+        accessKeyId: process.env.AWS_ACCESS_KEY_ID, secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
+    }
 });
 
-app.post('/api/state', (req, res) => {
-    fs.writeFileSync(
-        DATA_FILE,
-        JSON.stringify(req.body, null, 2)
-    );
+
+const BUCKET = process.env.S3_BUCKET;
+const KEY = 'data.json';
+
+// ===== Routes =====
+app.get('/api/state', async (req, res) => {
+    try {
+        const data = await s3.send(new GetObjectCommand({Bucket: BUCKET, Key: KEY}));
+        res.json(JSON.parse(data.Body.toString('utf-8')));
+    } catch (err) {
+        try {
+            const initial = {
+                players: [], championship: {championId: null, challengerId: null, winsInRow: 0},
+            };
+            const json = JSON.stringify(initial, null, 2)
+            await s3.send(new PutObjectCommand({Bucket: BUCKET, Key: KEY, Body: json}));
+            return res.json(initial);
+        } catch (err2) {
+            console.error('Failed to load initial state', err2);
+            return res.status(500).send(err.message + ' ' + err2.message);
+        }
+    }
+});
+
+app.post('/api/state', async (req, res) => {
+    const body = JSON.stringify(req.body, null, 2);
+    await s3.send(new PutObjectCommand({Bucket: BUCKET, Key: KEY, Body: body}));
     res.json({ok: true});
 });
 
-module.exports = app;
+// Export app as default
+export default app;
