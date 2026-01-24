@@ -237,7 +237,8 @@ function addMatch() {
                 date: now,
                 newChampionId: winnerId,
                 previousChampionId: loserId,
-                reason: 'game'
+                reason: 'game',
+                previousChampionDurationDays: calculateChampionshipDuration(loserId)
             });
 
             championship.championId = winnerId;
@@ -263,6 +264,21 @@ function addMatch() {
 /* ===============================
    CHAMPIONSHIP
 ================================ */
+
+function calculateChampionshipDuration(championId) {
+    if (!championId) return null;
+
+    const previousChampionshipEvent = championshipHistory
+        .slice()
+        .reverse()
+        .find(e => e.newChampionId === championId);
+
+    if (!previousChampionshipEvent) return null;
+
+    const start = new Date(previousChampionshipEvent.date);
+    const end = new Date();
+    return Math.floor((end - start) / (1000 * 60 * 60 * 24));
+}
 
 function toggleChangeChampion() {
     const form = document.getElementById('changeChampionForm');
@@ -296,12 +312,12 @@ function changeChampion() {
 
     // Record the change if there's actually a change
     if (newId !== championship.championId) {
-        let date = new Date().toISOString();
         championshipHistory.push({
-            date: date,
+            date: new Date().toISOString(),
             newChampionId: newId,
             previousChampionId: championship.championId,
-            reason: 'manual'
+            reason: 'manual',
+            previousChampionDurationDays: calculateChampionshipDuration(championship.championId)
         });
     }
 
@@ -399,8 +415,21 @@ function renderGameHistory() {
             const prevName = prevChamp ? prevChamp.name : 'None';
             const reason = event.reason === 'manual' ? '(manual)' : '';
 
+            // Format duration
+            let durationText = '';
+            if (event.previousChampionDurationDays !== null && event.previousChampionDurationDays !== undefined) {
+                const days = event.previousChampionDurationDays;
+                if (days === 0) {
+                    durationText = ' - held for <1 day';
+                } else if (days === 1) {
+                    durationText = ' - held for 1 day';
+                } else {
+                    durationText = ` - held for ${days} days`;
+                }
+            }
+
             return `<li class="history-item">
-                <span><strong>${dateStr} ${timeStr} - 👑 ${newName} became champion ${reason}</strong> (was: ${prevName})</span>
+                <span><strong>${dateStr} ${timeStr} - 👑 ${newName} became champion ${reason}</strong> (was: ${prevName}${durationText})</span>
                 <button class="remove-event-btn" onclick="removeHistoryEvent('championship', ${event.originalIndex})">×</button>
             </li>`;
         }
