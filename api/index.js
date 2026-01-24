@@ -65,7 +65,8 @@ const KEY = 'data.json';
 app.get('/api/state', async (req, res) => {
     try {
         const data = await s3.send(new GetObjectCommand({Bucket: BUCKET, Key: KEY}));
-        res.json(JSON.parse(data.Body.toString('utf-8')));
+        const bodyString = await data.Body.transformToString();
+        res.json(bodyString);
     } catch (err) {
         console.error('Failed to load initial state', err);
         return res.status(500).send(err.message);
