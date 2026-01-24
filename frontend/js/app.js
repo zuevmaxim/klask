@@ -67,6 +67,16 @@ function saveState() {
    PLAYERS
 ================================ */
 
+function toggleAddPlayer() {
+    const form = document.getElementById('addPlayerForm');
+    const isVisible = form.style.display !== 'none';
+    form.style.display = isVisible ? 'none' : 'block';
+
+    if (!isVisible) {
+        document.getElementById('playerName').focus();
+    }
+}
+
 function addPlayer() {
     const input = document.getElementById('playerName');
     const name = input.value.trim();
@@ -80,6 +90,7 @@ function addPlayer() {
     });
 
     input.value = '';
+    document.getElementById('addPlayerForm').style.display = 'none';
     saveState();
     render();
 }

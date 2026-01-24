@@ -9,9 +9,12 @@
 </head>
 <body>
 
-<h2>➕ Add player</h2>
-<input id="playerName" placeholder="Player name">
-<button onclick="addPlayer()">Add</button>
+<button id="addPlayerBtn" class="add-player-btn" onclick="toggleAddPlayer()">+</button>
+
+<div id="addPlayerForm" class="add-player-form" style="display: none;">
+    <input id="playerName" placeholder="Player name">
+    <button onclick="addPlayer()">Add</button>
+</div>
 
 <hr>
 
