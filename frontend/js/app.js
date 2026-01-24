@@ -14,8 +14,10 @@ const players = [];
 const championship = {
     championId: null,
     challengerId: null,
-    winsInRow: 0
+    winsInRow: 0,
+    lastWinDate: null
 };
+const games = [];
 
 let score1 = null;
 let score2 = null;
@@ -42,9 +44,16 @@ async function loadState() {
     championship.championId = data.championship.championId;
     championship.challengerId = data.championship.challengerId;
     championship.winsInRow = data.championship.winsInRow;
+    championship.lastWinDate = data.championship.lastWinDate;
+
+    games.length = 0;
+    if (data.games) {
+        games.push(...data.games);
+    }
 
     render();
     renderScoreCircles();
+    renderGameHistory();
 }
 
 function saveState() {
@@ -56,7 +65,8 @@ function saveState() {
         },
         body: JSON.stringify({
             players,
-            championship
+            championship,
+            games
         })
     }).catch(err => {
         console.error('Failed to save state', err);
@@ -193,25 +203,41 @@ function addMatch() {
     players.find(p => p.id === winnerId).wins++;
     players.find(p => p.id === loserId).losses++;
 
+    // Save game to history
+    games.push({
+        date: new Date().toISOString(),
+        player1Id: p1Id,
+        player2Id: p2Id,
+        score1: score1,
+        score2: score2
+    });
+
     // Championship logic
+    const today = new Date().toDateString();
+
     if (!championship.championId) {
         championship.championId = winnerId;
     } else if (championship.championId === loserId) {
-        if (championship.challengerId === winnerId) {
+        const isSameDay = championship.lastWinDate === today;
+
+        if (championship.challengerId === winnerId && isSameDay) {
             championship.winsInRow++;
         } else {
             championship.challengerId = winnerId;
             championship.winsInRow = 1;
+            championship.lastWinDate = today;
         }
 
         if (championship.winsInRow === 2) {
             championship.championId = winnerId;
             championship.challengerId = null;
             championship.winsInRow = 0;
+            championship.lastWinDate = null;
         }
     } else if (championship.championId === winnerId) {
         championship.challengerId = null;
         championship.winsInRow = 0;
+        championship.lastWinDate = null;
     }
 
     score1 = null;
@@ -220,11 +246,48 @@ function addMatch() {
 
     saveState();
     render();
+    renderGameHistory();
 }
 
 /* ===============================
    RENDER
 ================================ */
+
+function renderGameHistory() {
+    const historyEl = document.getElementById('gameHistory');
+    if (!historyEl) return;
+
+    if (games.length === 0) {
+        historyEl.innerHTML = '<p>No games played yet</p>';
+        return;
+    }
+
+    // Show games in reverse order (most recent first)
+    const historyHTML = games
+        .slice()
+        .reverse()
+        .map(game => {
+            const p1 = players.find(p => p.id === game.player1Id);
+            const p2 = players.find(p => p.id === game.player2Id);
+            const date = new Date(game.date);
+            const dateStr = date.toLocaleDateString();
+            const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+            const p1Name = p1 ? p1.name : 'Unknown';
+            const p2Name = p2 ? p2.name : 'Unknown';
+
+            // Show winner first
+            const winnerName = game.score1 > game.score2 ? p1Name : p2Name;
+            const loserName = game.score1 > game.score2 ? p2Name : p1Name;
+            const winnerScore = Math.max(game.score1, game.score2);
+            const loserScore = Math.min(game.score1, game.score2);
+
+            return `<li>${dateStr} ${timeStr} - ${winnerName} ${winnerScore}:${loserScore} ${loserName}</li>`;
+        })
+        .join('');
+
+    historyEl.innerHTML = `<ul>${historyHTML}</ul>`;
+}
 
 function render() {
     const p1 = document.getElementById('p1');
