@@ -144,14 +144,48 @@ function updateActive(containerId, value) {
    MATCH / CHAMPIONSHIP
 ================================ */
 
+function handlePlayerSelect(changedPlayer) {
+    if (players.length < 2) return;
+
+    const p1 = document.getElementById('p1');
+    const p2 = document.getElementById('p2');
+    const p1Id = +p1.value;
+    const p2Id = +p2.value;
+
+    // If both players are the same, switch the other player
+    if (p1Id === p2Id) {
+        const otherSelect = changedPlayer === 1 ? p2 : p1;
+        const selectedId = changedPlayer === 1 ? p1Id : p2Id;
+
+        // Find a different player
+        const otherPlayer = players.find(p => p.id !== selectedId);
+        if (otherPlayer) {
+            otherSelect.value = otherPlayer.id;
+        }
+    }
+}
+
 function addMatch() {
     if (players.length < 2) return;
     if (score1 === null || score2 === null) return;
-    if (score1 === score2) return;
 
     const p1Id = +document.getElementById('p1').value;
     const p2Id = +document.getElementById('p2').value;
-    if (p1Id === p2Id) return;
+
+    if (p1Id === p2Id) {
+        alert('A player cannot play against themselves');
+        return;
+    }
+
+    if (score1 !== 6 && score2 !== 6) {
+        alert('One player must have 6 points');
+        return;
+    }
+
+    if (score1 === score2) {
+        alert('Scores cannot be equal');
+        return;
+    }
 
     const winnerId = score1 > score2 ? p1Id : p2Id;
     const loserId = score1 > score2 ? p2Id : p1Id;
@@ -196,6 +230,9 @@ function render() {
     const p1 = document.getElementById('p1');
     const p2 = document.getElementById('p2');
 
+    const currentP1 = p1.value;
+    const currentP2 = p2.value;
+
     p1.innerHTML = '';
     p2.innerHTML = '';
 
@@ -209,6 +246,21 @@ function render() {
         p1.appendChild(opt1);
         p2.appendChild(opt2);
     });
+
+    // Set initial players to be different
+    if (players.length >= 2) {
+        if (currentP1) {
+            p1.value = currentP1;
+        } else {
+            p1.value = players[0].id;
+        }
+
+        if (currentP2) {
+            p2.value = currentP2;
+        } else {
+            p2.value = players[1].id;
+        }
+    }
 
     document.getElementById('stats').innerHTML = players
         .map(p => `<li>${p.name}: ${p.wins}W / ${p.losses}L</li>`)
