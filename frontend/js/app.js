@@ -245,6 +245,49 @@ function addMatch() {
 }
 
 /* ===============================
+   CHAMPIONSHIP
+================================ */
+
+function toggleChangeChampion() {
+    const form = document.getElementById('changeChampionForm');
+    const isVisible = form.style.display !== 'none';
+    form.style.display = isVisible ? 'none' : 'block';
+
+    if (!isVisible) {
+        renderChampionSelect();
+    }
+}
+
+function renderChampionSelect() {
+    const select = document.getElementById('newChampion');
+    select.innerHTML = '<option value="">No champion</option>';
+
+    players.forEach(p => {
+        const opt = document.createElement('option');
+        opt.value = p.id;
+        opt.innerText = p.name;
+        select.appendChild(opt);
+    });
+
+    if (championship.championId) {
+        select.value = championship.championId;
+    }
+}
+
+function changeChampion() {
+    const newChampionId = document.getElementById('newChampion').value;
+
+    championship.championId = newChampionId ? +newChampionId : null;
+    championship.challengerId = null;
+    championship.winsInRow = 0;
+    championship.lastWinDate = null;
+
+    document.getElementById('changeChampionForm').style.display = 'none';
+    saveState();
+    render();
+}
+
+/* ===============================
    RENDER
 ================================ */
 

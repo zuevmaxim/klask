@@ -101,10 +101,31 @@ li {
 
 /* ===== CHAMPION ===== */
 
+.champion-section {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
 #champion {
     font-size: 18px;
     font-weight: 600;
     padding: 6px 0;
+}
+
+.change-champion-btn {
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+    border-radius: 50%;
+    font-size: 16px;
+    padding: 0;
+    margin: 0;
+    background: #222;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 /* ===== ADD PLAYER BUTTON ===== */

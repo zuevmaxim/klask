@@ -39,7 +39,15 @@
 <hr>
 
 <h2>👑 Champion</h2>
-<div id="champion">—</div>
+<div class="champion-section">
+    <div id="champion">—</div>
+    <button class="change-champion-btn" onclick="toggleChangeChampion()">✎</button>
+</div>
+
+<div id="changeChampionForm" class="add-player-form" style="display: none;">
+    <select id="newChampion"></select>
+    <button onclick="changeChampion()">Set</button>
+</div>
 
 <hr>
 
