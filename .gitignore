@@ -1,0 +1,4 @@
+/server/.env
+/server/data.json
+.idea
+.DS_Store
