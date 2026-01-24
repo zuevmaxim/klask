@@ -1,5 +1,5 @@
-/server/.env
-/server/data.json
+/api/.env
+/api/data.json
 node_modules
 
 

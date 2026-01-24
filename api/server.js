@@ -67,12 +67,12 @@ function basicAuth(req, res, next) {
 app.use(basicAuth);
 
 // ===== API =====
-app.get('/state', (req, res) => {
+app.get('/api/state', (req, res) => {
     const data = fs.readFileSync(DATA_FILE, 'utf8');
     res.json(JSON.parse(data));
 });
 
-app.post('/state', (req, res) => {
+app.post('/api/state', (req, res) => {
     fs.writeFileSync(
         DATA_FILE,
         JSON.stringify(req.body, null, 2)
