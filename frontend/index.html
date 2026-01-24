@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Tracker</title>
+
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<h2>➕ Add player</h2>
+<input id="playerName" placeholder="Player name">
+<button onclick="addPlayer()">Add</button>
+
+<hr>
+
+<h2>🎮 New game</h2>
+
+<select id="p1"></select>
+
+<div>
+    <div>Score player 1</div>
+    <div class="score-row" id="score1"></div>
+</div>
+
+<select id="p2"></select>
+
+<div>
+    <div>Score player 2</div>
+    <div class="score-row" id="score2"></div>
+</div>
+
+<button onclick="addMatch()">Save game</button>
+
+<hr>
+
+<h2>👑 Champion</h2>
+<div id="champion">—</div>
+
+<hr>
+
+<h2>📊 Stats</h2>
+<ul id="stats"></ul>
+
+<script src="js/app.js"></script>
+</body>
+</html>

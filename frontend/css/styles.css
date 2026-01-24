@@ -1,0 +1,118 @@
+/* ===== RESET / BASE ===== */
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    padding: 16px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI",
+    Roboto, Helvetica, Arial, sans-serif;
+    background: #fafafa;
+    color: #111;
+}
+
+h2 {
+    margin-top: 24px;
+    margin-bottom: 8px;
+    font-size: 20px;
+}
+
+hr {
+    margin: 20px 0;
+    border: none;
+    border-top: 1px solid #ddd;
+}
+
+/* ===== FORM ELEMENTS ===== */
+
+input,
+select,
+button {
+    width: 100%;
+    padding: 10px;
+    margin: 6px 0;
+    font-size: 16px;
+}
+
+input,
+select {
+    border: 1px solid #ccc;
+    border-radius: 6px;
+}
+
+button {
+    background: #222;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+button:active {
+    transform: scale(0.98);
+}
+
+button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* ===== SCORE CIRCLES ===== */
+
+.score-row {
+    display: flex;
+    gap: 8px;
+    margin: 8px 0 16px;
+    flex-wrap: wrap;
+}
+
+.score-circle {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 2px solid #444;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    cursor: pointer;
+    user-select: none;
+    background: #fff;
+}
+
+.score-circle.active {
+    background: #222;
+    color: #fff;
+}
+
+/* ===== STATS ===== */
+
+ul {
+    padding-left: 18px;
+    margin: 8px 0;
+}
+
+li {
+    margin-bottom: 4px;
+    font-size: 15px;
+}
+
+/* ===== CHAMPION ===== */
+
+#champion {
+    font-size: 18px;
+    font-weight: 600;
+    padding: 6px 0;
+}
+
+/* ===== SMALL MOBILE TWEAKS ===== */
+
+@media (max-width: 400px) {
+    .score-circle {
+        width: 32px;
+        height: 32px;
+        font-size: 14px;
+    }
+}
