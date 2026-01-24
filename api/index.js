@@ -67,17 +67,8 @@ app.get('/api/state', async (req, res) => {
         const data = await s3.send(new GetObjectCommand({Bucket: BUCKET, Key: KEY}));
         res.json(JSON.parse(data.Body.toString('utf-8')));
     } catch (err) {
-        try {
-            const initial = {
-                players: [], championship: {championId: null, challengerId: null, winsInRow: 0},
-            };
-            const json = JSON.stringify(initial, null, 2)
-            await s3.send(new PutObjectCommand({Bucket: BUCKET, Key: KEY, Body: json}));
-            return res.json(initial);
-        } catch (err2) {
-            console.error('Failed to load initial state', err2);
-            return res.status(500).send(err.message + ' ' + err2.message);
-        }
+        console.error('Failed to load initial state', err);
+        return res.status(500).send(err.message);
     }
 });
 
