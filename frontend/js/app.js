@@ -94,9 +94,7 @@ function addPlayer() {
 
     players.push({
         id: Date.now(),
-        name,
-        wins: 0,
-        losses: 0
+        name
     });
 
     input.value = '';
@@ -199,9 +197,6 @@ function addMatch() {
 
     const winnerId = score1 > score2 ? p1Id : p2Id;
     const loserId = score1 > score2 ? p2Id : p1Id;
-
-    players.find(p => p.id === winnerId).wins++;
-    players.find(p => p.id === loserId).losses++;
 
     // Save game to history
     games.push({
@@ -325,8 +320,22 @@ function render() {
         }
     }
 
-    document.getElementById('stats').innerHTML = players
-        .map(p => `<li>${p.name}: ${p.wins}W / ${p.losses}L</li>`)
+    // Calculate stats from game history
+    const stats = {};
+    players.forEach(p => {
+        stats[p.id] = { name: p.name, wins: 0, losses: 0 };
+    });
+
+    games.forEach(game => {
+        const winnerId = game.score1 > game.score2 ? game.player1Id : game.player2Id;
+        const loserId = game.score1 > game.score2 ? game.player2Id : game.player1Id;
+
+        if (stats[winnerId]) stats[winnerId].wins++;
+        if (stats[loserId]) stats[loserId].losses++;
+    });
+
+    document.getElementById('stats').innerHTML = Object.values(stats)
+        .map(s => `<li>${s.name}: ${s.wins}W / ${s.losses}L</li>`)
         .join('');
 
     const champ = players.find(p => p.id === championship.championId);
