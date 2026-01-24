@@ -18,6 +18,7 @@ const championship = {
     lastWinDate: null
 };
 const games = [];
+const championshipHistory = [];
 
 let score1 = null;
 let score2 = null;
@@ -51,6 +52,11 @@ async function loadState() {
         games.push(...data.games);
     }
 
+    championshipHistory.length = 0;
+    if (data.championshipHistory) {
+        championshipHistory.push(...data.championshipHistory);
+    }
+
     render();
     renderScoreCircles();
     renderGameHistory();
@@ -66,7 +72,8 @@ function saveState() {
         body: JSON.stringify({
             players,
             championship,
-            games
+            games,
+            championshipHistory
         })
     }).catch(err => {
         console.error('Failed to save state', err);
@@ -198,9 +205,13 @@ function addMatch() {
     const winnerId = score1 > score2 ? p1Id : p2Id;
     const loserId = score1 > score2 ? p2Id : p1Id;
 
+    let currentDate = new Date();
+    let today = currentDate.toDateString()
+    const now = currentDate.toISOString();
+
     // Save game to history
     games.push({
-        date: new Date().toISOString(),
+        date: now,
         player1Id: p1Id,
         player2Id: p2Id,
         score1: score1,
@@ -208,8 +219,6 @@ function addMatch() {
     });
 
     // Championship logic
-    const today = new Date().toDateString();
-
     if (!championship.championId) {
         championship.championId = winnerId;
     } else if (championship.championId === loserId) {
@@ -224,6 +233,13 @@ function addMatch() {
         }
 
         if (championship.winsInRow === 2) {
+            championshipHistory.push({
+                date: now,
+                newChampionId: winnerId,
+                previousChampionId: loserId,
+                reason: 'game'
+            });
+
             championship.championId = winnerId;
             championship.challengerId = null;
             championship.winsInRow = 0;
@@ -276,8 +292,20 @@ function renderChampionSelect() {
 
 function changeChampion() {
     const newChampionId = document.getElementById('newChampion').value;
+    const newId = newChampionId ? +newChampionId : null;
 
-    championship.championId = newChampionId ? +newChampionId : null;
+    // Record the change if there's actually a change
+    if (newId !== championship.championId) {
+        let date = new Date().toISOString();
+        championshipHistory.push({
+            date: date,
+            newChampionId: newId,
+            previousChampionId: championship.championId,
+            reason: 'manual'
+        });
+    }
+
+    championship.championId = newId;
     championship.challengerId = null;
     championship.winsInRow = 0;
     championship.lastWinDate = null;
@@ -285,6 +313,7 @@ function changeChampion() {
     document.getElementById('changeChampionForm').style.display = 'none';
     saveState();
     render();
+    renderGameHistory();
 }
 
 /* ===============================
@@ -295,34 +324,49 @@ function renderGameHistory() {
     const historyEl = document.getElementById('gameHistory');
     if (!historyEl) return;
 
-    if (games.length === 0) {
+    // Combine games and championship events
+    const allEvents = [
+        ...games.map(g => ({...g, type: 'game'})),
+        ...championshipHistory.map(e => ({...e, type: 'championship'}))
+    ];
+
+    if (allEvents.length === 0) {
         historyEl.innerHTML = '<p>No games played yet</p>';
         return;
     }
 
-    // Show games in reverse order (most recent first)
-    const historyHTML = games
-        .slice()
-        .reverse()
-        .map(game => {
-            const p1 = players.find(p => p.id === game.player1Id);
-            const p2 = players.find(p => p.id === game.player2Id);
-            const date = new Date(game.date);
-            const dateStr = date.toLocaleDateString();
-            const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    // Sort by date (most recent first)
+    allEvents.sort((a, b) => new Date(b.date) - new Date(a.date));
 
+    const historyHTML = allEvents.map(event => {
+        const date = new Date(event.date);
+        const dateStr = date.toLocaleDateString();
+        const timeStr = date.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
+
+        if (event.type === 'game') {
+            const p1 = players.find(p => p.id === event.player1Id);
+            const p2 = players.find(p => p.id === event.player2Id);
             const p1Name = p1 ? p1.name : 'Unknown';
             const p2Name = p2 ? p2.name : 'Unknown';
 
             // Show winner first
-            const winnerName = game.score1 > game.score2 ? p1Name : p2Name;
-            const loserName = game.score1 > game.score2 ? p2Name : p1Name;
-            const winnerScore = Math.max(game.score1, game.score2);
-            const loserScore = Math.min(game.score1, game.score2);
+            const winnerName = event.score1 > event.score2 ? p1Name : p2Name;
+            const loserName = event.score1 > event.score2 ? p2Name : p1Name;
+            const winnerScore = Math.max(event.score1, event.score2);
+            const loserScore = Math.min(event.score1, event.score2);
 
             return `<li>${dateStr} ${timeStr} - ${winnerName} ${winnerScore}:${loserScore} ${loserName}</li>`;
-        })
-        .join('');
+        } else {
+            // Championship event
+            const newChamp = players.find(p => p.id === event.newChampionId);
+            const prevChamp = players.find(p => p.id === event.previousChampionId);
+            const newName = newChamp ? newChamp.name : 'None';
+            const prevName = prevChamp ? prevChamp.name : 'None';
+            const reason = event.reason === 'manual' ? '(manual)' : '';
+
+            return `<li><strong>${dateStr} ${timeStr} - 👑 ${newName} became champion ${reason}</strong> (was: ${prevName})</li>`;
+        }
+    }).join('');
 
     historyEl.innerHTML = `<ul>${historyHTML}</ul>`;
 }
@@ -366,7 +410,7 @@ function render() {
     // Calculate stats from game history
     const stats = {};
     players.forEach(p => {
-        stats[p.id] = { name: p.name, wins: 0, losses: 0 };
+        stats[p.id] = {name: p.name, wins: 0, losses: 0};
     });
 
     games.forEach(game => {
