@@ -262,8 +262,8 @@ function renderGameHistory() {
 
     // Combine games and championship events with their original indices
     const allEvents = [
+        ...championshipHistory.map((e, idx) => ({...e, type: 'championship', originalIndex: idx})),
         ...games.map((g, idx) => ({...g, type: 'game', originalIndex: idx})),
-        ...championshipHistory.map((e, idx) => ({...e, type: 'championship', originalIndex: idx}))
     ];
 
     if (allEvents.length === 0) {
