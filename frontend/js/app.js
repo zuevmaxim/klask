@@ -320,14 +320,46 @@ function changeChampion() {
    RENDER
 ================================ */
 
+function removeHistoryEvent(type, index) {
+    let eventDescription;
+
+    if (type === 'game') {
+        const game = games[index];
+        const p1 = players.find(p => p.id === game.player1Id);
+        const p2 = players.find(p => p.id === game.player2Id);
+        const p1Name = p1 ? p1.name : 'Unknown';
+        const p2Name = p2 ? p2.name : 'Unknown';
+        eventDescription = `${p1Name} ${game.score1}:${game.score2} ${p2Name}`;
+    } else {
+        const event = championshipHistory[index];
+        const newChamp = players.find(p => p.id === event.newChampionId);
+        const newName = newChamp ? newChamp.name : 'None';
+        eventDescription = `${newName} became champion`;
+    }
+
+    if (!confirm(`Remove this event?\n${eventDescription}`)) {
+        return;
+    }
+
+    if (type === 'game') {
+        games.splice(index, 1);
+    } else {
+        championshipHistory.splice(index, 1);
+    }
+
+    saveState();
+    render();
+    renderGameHistory();
+}
+
 function renderGameHistory() {
     const historyEl = document.getElementById('gameHistory');
     if (!historyEl) return;
 
-    // Combine games and championship events
+    // Combine games and championship events with their original indices
     const allEvents = [
-        ...games.map(g => ({...g, type: 'game'})),
-        ...championshipHistory.map(e => ({...e, type: 'championship'}))
+        ...games.map((g, idx) => ({...g, type: 'game', originalIndex: idx})),
+        ...championshipHistory.map((e, idx) => ({...e, type: 'championship', originalIndex: idx}))
     ];
 
     if (allEvents.length === 0) {
@@ -355,7 +387,10 @@ function renderGameHistory() {
             const winnerScore = Math.max(event.score1, event.score2);
             const loserScore = Math.min(event.score1, event.score2);
 
-            return `<li>${dateStr} ${timeStr} - ${winnerName} ${winnerScore}:${loserScore} ${loserName}</li>`;
+            return `<li class="history-item">
+                <span>${dateStr} ${timeStr} - ${winnerName} ${winnerScore}:${loserScore} ${loserName}</span>
+                <button class="remove-event-btn" onclick="removeHistoryEvent('game', ${event.originalIndex})">×</button>
+            </li>`;
         } else {
             // Championship event
             const newChamp = players.find(p => p.id === event.newChampionId);
@@ -364,7 +399,10 @@ function renderGameHistory() {
             const prevName = prevChamp ? prevChamp.name : 'None';
             const reason = event.reason === 'manual' ? '(manual)' : '';
 
-            return `<li><strong>${dateStr} ${timeStr} - 👑 ${newName} became champion ${reason}</strong> (was: ${prevName})</li>`;
+            return `<li class="history-item">
+                <span><strong>${dateStr} ${timeStr} - 👑 ${newName} became champion ${reason}</strong> (was: ${prevName})</span>
+                <button class="remove-event-btn" onclick="removeHistoryEvent('championship', ${event.originalIndex})">×</button>
+            </li>`;
         }
     }).join('');
 
