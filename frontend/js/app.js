@@ -104,9 +104,21 @@ function createScoreCircle(value, player) {
         if (player === 1) {
             score1 = value;
             updateActive('score1', value);
+
+            // If score is less than 6, set other player's score to 6
+            if (value < 6 && score2 !== 6) {
+                score2 = 6;
+                updateActive('score2', 6);
+            }
         } else {
             score2 = value;
             updateActive('score2', value);
+
+            // If score is less than 6, set other player's score to 6
+            if (value < 6 && score1 !== 6) {
+                score1 = 6;
+                updateActive('score1', 6);
+            }
         }
     };
 
