@@ -32,8 +32,9 @@ function calculateChampionshipDuration(championId) {
 }
 
 function addPlayerToState(name) {
+    // Use Date.now() + players.length to ensure unique IDs even in quick succession
     const player = {
-        id: Date.now(),
+        id: Date.now() + players.length,
         name
     };
     players.push(player);
