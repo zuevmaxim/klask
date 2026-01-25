@@ -9,20 +9,23 @@ body {
     padding: 16px;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI",
     Roboto, Helvetica, Arial, sans-serif;
-    background: #fafafa;
-    color: #111;
+
+    /* Klask table background */
+    background: #0b1c3d;
+    color: #ffffff;
 }
 
 h2 {
     margin-top: 24px;
     margin-bottom: 8px;
     font-size: 20px;
+    color: #ffffff;
 }
 
 hr {
     margin: 20px 0;
     border: none;
-    border-top: 1px solid #ddd;
+    border-top: 2px solid #1e3a8a;
 }
 
 /* ===== FORM ELEMENTS ===== */
@@ -38,20 +41,27 @@ button {
 
 input,
 select {
-    border: 1px solid #ccc;
-    border-radius: 6px;
+    background: #1e3a8a;
+    color: #ffffff;
+    border: 2px solid #ffffff;
+    border-radius: 8px;
+}
+
+input::placeholder {
+    color: #c7d2fe;
 }
 
 button {
-    background: #222;
-    color: #fff;
+    background: #ffa500; /* Klask orange */
+    color: #0b1c3d;
     border: none;
-    border-radius: 6px;
+    border-radius: 8px;
     cursor: pointer;
+    font-weight: 700;
 }
 
 button:active {
-    transform: scale(0.98);
+    transform: scale(0.97);
 }
 
 button:disabled {
@@ -72,19 +82,31 @@ button:disabled {
     width: 36px;
     height: 36px;
     border-radius: 50%;
-    border: 2px solid #444;
+
+    /* Klask table surface */
+    background: #1e3a8a;
+    border: 2px solid #ffffff;
+
     display: flex;
     align-items: center;
     justify-content: center;
-    font-weight: 600;
+
+    font-weight: 700;
+    color: #ffffff;
     cursor: pointer;
     user-select: none;
-    background: #fff;
+
+    transition: transform 0.1s ease, background 0.1s ease;
+}
+
+.score-circle:hover {
+    transform: scale(1.05);
 }
 
 .score-circle.active {
-    background: #222;
-    color: #fff;
+    background: #ffa500; /* orange ball */
+    color: #0b1c3d;
+    border-color: #ffd700;
 }
 
 /* ===== STATS ===== */
@@ -97,6 +119,7 @@ ul {
 li {
     margin-bottom: 4px;
     font-size: 15px;
+    color: #e0e7ff;
 }
 
 /* ===== CHAMPION ===== */
@@ -109,8 +132,11 @@ li {
 
 #champion {
     font-size: 18px;
-    font-weight: 600;
-    padding: 6px 0;
+    font-weight: 800;
+    padding: 6px 10px;
+    background: #ffd700;
+    color: #0b1c3d;
+    border-radius: 8px;
 }
 
 .change-champion-btn {
@@ -121,11 +147,14 @@ li {
     font-size: 16px;
     padding: 0;
     margin: 0;
-    background: #222;
-    color: #fff;
+
+    background: #ffffff;
+    color: #0b1c3d;
+
     display: flex;
     align-items: center;
     justify-content: center;
+    font-weight: 700;
 }
 
 /* ===== ADD PLAYER BUTTON ===== */
@@ -134,15 +163,18 @@ li {
     position: fixed;
     top: 16px;
     right: 16px;
+
     width: 48px;
     height: 48px;
     border-radius: 50%;
     font-size: 28px;
     line-height: 1;
     padding: 0;
-    background: #222;
-    color: #fff;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+
+    background: #ffa500;
+    color: #0b1c3d;
+
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
     z-index: 100;
 }
 
@@ -157,7 +189,11 @@ li {
     justify-content: space-between;
     align-items: center;
     gap: 8px;
-    margin-bottom: 4px;
+    margin-bottom: 6px;
+
+    background: #1e3a8a;
+    padding: 6px 8px;
+    border-radius: 6px;
 }
 
 .remove-event-btn {
@@ -168,8 +204,10 @@ li {
     font-size: 18px;
     padding: 0;
     margin: 0;
-    background: #dc3545;
-    color: #fff;
+
+    background: #ef4444;
+    color: #ffffff;
+
     display: flex;
     align-items: center;
     justify-content: center;
