@@ -16,6 +16,11 @@ const championshipHistory = [];
    BUSINESS LOGIC
 ================================ */
 
+function durationInDays(end, start) {
+    const hours = (end - start) / (1000 * 60 * 60);
+    return Math.floor((hours + 12) / 24);
+}
+
 function calculateChampionshipDuration(championId) {
     if (!championId) return null;
 
@@ -28,7 +33,7 @@ function calculateChampionshipDuration(championId) {
 
     const start = new Date(previousChampionshipEvent.date);
     const end = new Date();
-    return Math.floor((end - start) / (1000 * 60 * 60 * 24));
+    return durationInDays(end, start);
 }
 
 function addPlayerToState(name) {
@@ -166,7 +171,7 @@ function calculateStats() {
         const nextEvent = championshipHistory[index + 1];
         const endDate = nextEvent ? new Date(nextEvent.date) : new Date();
 
-        const days = Math.floor((endDate - startDate) / (1000 * 60 * 60 * 24));
+        const days = durationInDays(endDate, startDate);
 
         stats[championId].totalChampionDays += days;
         if (days > stats[championId].maxChampionStreak) {
