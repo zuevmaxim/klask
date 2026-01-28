@@ -320,3 +320,30 @@ li {
         font-size: 14px;
     }
 }
+
+/* ===== MOBILE STATS TABLE ===== */
+
+@media (max-width: 768px) {
+    .stats-table {
+        font-size: 12px;
+    }
+
+    .stats-table th,
+    .stats-table td {
+        padding: 6px 4px;
+    }
+}
+
+@media (max-width: 480px) {
+    .stats-table {
+        font-size: 11px;
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
+    }
+
+    .stats-table th,
+    .stats-table td {
+        padding: 6px 3px;
+    }
+}

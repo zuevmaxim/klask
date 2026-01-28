@@ -462,9 +462,9 @@ function render() {
                 <thead>
                     <tr>
                         <th>Player</th>
-                        <th>Win Games %</th>
-                        <th>Total Games</th>
-                        <th>Point Win %</th>
+                        <th>Win %</th>
+                        <th>Games</th>
+                        <th>Points %</th>
                         <th>Champion Days</th>
                         <th>Max Streak</th>
                     </tr>
