@@ -9,7 +9,24 @@
 </head>
 <body>
 
+<!-- Login Screen -->
+<div id="loginScreen" class="login-screen" style="display: none;">
+    <div class="login-box">
+        <h1>🎮 Game Tracker</h1>
+        <form id="loginForm" onsubmit="handleLogin(event)">
+            <input type="text" id="loginUsername" placeholder="Username" required autocomplete="username" />
+            <input type="password" id="loginPassword" placeholder="Password" required autocomplete="current-password" />
+            <button type="submit">Login</button>
+            <div id="loginError" class="login-error"></div>
+        </form>
+    </div>
+</div>
+
+<!-- Main App -->
+<div id="mainApp" style="display: none;">
+
 <button id="addPlayerBtn" class="add-player-btn" onclick="toggleAddPlayer()">+</button>
+<button id="logoutBtn" class="logout-btn" onclick="handleLogout()">⎋</button>
 
 <div id="addPlayerForm" class="add-player-form" style="display: none;">
     <input id="playerName" placeholder="Player name">
@@ -58,6 +75,9 @@
 
 <h2>📜 Game History</h2>
 <div id="gameHistory"></div>
+
+</div>
+<!-- End Main App -->
 
 <script src="js/game-logic.js"></script>
 <script src="js/app.js"></script>

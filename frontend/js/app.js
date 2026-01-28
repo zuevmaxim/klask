@@ -17,17 +17,93 @@ let score2 = null;
    API
 ================================ */
 
+const TOKEN_KEY = 'klask_auth_token';
+
+function getAuthHeaders() {
+    const token = localStorage.getItem(TOKEN_KEY);
+    if (token) {
+        return { 'Authorization': `Bearer ${token}` };
+    }
+    return {};
+}
+
+async function handleAuthResponse(res) {
+    if (res.status === 401) {
+        // Token expired or invalid, clear it and prompt login
+        localStorage.removeItem(TOKEN_KEY);
+        await promptLogin();
+        return null;
+    }
+    return res;
+}
+
+function showLoginScreen() {
+    document.getElementById('loginScreen').style.display = 'flex';
+    document.getElementById('mainApp').style.display = 'none';
+}
+
+function showMainApp() {
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('mainApp').style.display = 'block';
+}
+
+async function handleLogin(event) {
+    event.preventDefault();
+
+    const username = document.getElementById('loginUsername').value;
+    const password = document.getElementById('loginPassword').value;
+    const errorEl = document.getElementById('loginError');
+
+    errorEl.textContent = '';
+
+    try {
+        const res = await fetch(`${API_URL}/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password })
+        });
+
+        if (res.ok) {
+            const data = await res.json();
+            localStorage.setItem(TOKEN_KEY, data.token);
+            showMainApp();
+            await loadState();
+        } else {
+            errorEl.textContent = 'Invalid credentials';
+        }
+    } catch (err) {
+        console.error('Login failed', err);
+        errorEl.textContent = 'Login failed. Please try again.';
+    }
+}
+
+function handleLogout() {
+    if (confirm('Are you sure you want to logout?')) {
+        localStorage.removeItem(TOKEN_KEY);
+        location.reload();
+    }
+}
+
+async function promptLogin() {
+    showLoginScreen();
+}
+
 async function loadState() {
     const res = await fetch(`${API_URL}/state`, {
         method: 'GET',
-        credentials: 'include' // allow browser to handle auth cookies / prompts
+        headers: getAuthHeaders(),
+        credentials: 'include'
     });
-    if (!res.ok) {
+
+    const handledRes = await handleAuthResponse(res);
+    if (!handledRes) return;
+
+    if (!handledRes.ok) {
         console.error('Failed to load state');
         return;
     }
 
-    const data = await res.json();
+    const data = await handledRes.json();
     loadStateFromData(data);
 
     render();
@@ -40,7 +116,8 @@ function saveState() {
         method: 'POST',
         credentials: 'include',
         headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            ...getAuthHeaders()
         },
         body: JSON.stringify(getStateForSave())
     }).catch(err => {
@@ -417,4 +494,11 @@ function render() {
    START
 ================================ */
 
-loadState();
+// Check if user has token, otherwise show login
+const token = localStorage.getItem(TOKEN_KEY);
+if (token) {
+    showMainApp();
+    loadState();
+} else {
+    showLoginScreen();
+}
