@@ -15,11 +15,18 @@ body {
     color: #FFFFFF;
 }
 
+#mainApp {
+    max-width: 600px;
+    margin: 0 auto;
+    text-align: center;
+}
+
 h2 {
     margin-top: 24px;
     margin-bottom: 8px;
     font-size: 20px;
     color: #FFFFFF;
+    text-align: center;
 }
 
 hr {
@@ -76,6 +83,7 @@ button:disabled {
     gap: 8px;
     margin: 8px 0 16px;
     flex-wrap: wrap;
+    justify-content: center;
 }
 
 .score-circle {
@@ -162,6 +170,7 @@ li {
 .champion-section {
     display: flex;
     align-items: center;
+    justify-content: center;
     gap: 12px;
 }
 
@@ -331,6 +340,7 @@ li {
     .stats-table th,
     .stats-table td {
         padding: 6px 4px;
+        text-align: center;
     }
 }
 
@@ -345,5 +355,6 @@ li {
     .stats-table th,
     .stats-table td {
         padding: 6px 3px;
+        text-align: center;
     }
 }
