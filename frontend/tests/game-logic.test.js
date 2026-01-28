@@ -211,6 +211,21 @@ function testCalculateStats() {
     games.push({ player1Id: aliceId, player2Id: bobId, score1: 6, score2: 3 });
     games.push({ player1Id: bobId, player2Id: aliceId, score1: 6, score2: 5 });
 
+    // Add championship history
+    const threeDaysAgo = new Date();
+    threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
+    const oneDayAgo = new Date();
+    oneDayAgo.setDate(oneDayAgo.getDate() - 1);
+
+    championshipHistory.push({
+        date: threeDaysAgo.toISOString(),
+        newChampionId: aliceId
+    });
+    championshipHistory.push({
+        date: oneDayAgo.toISOString(),
+        newChampionId: bobId
+    });
+
     const stats = calculateStats();
 
     assertEquals(stats.length, 2, 'Should have stats for 2 players');
@@ -220,8 +235,23 @@ function testCalculateStats() {
 
     assertEquals(aliceStats.wins, 2, 'Alice should have 2 wins');
     assertEquals(aliceStats.losses, 1, 'Alice should have 1 loss');
+    assertEquals(aliceStats.totalGames, 3, 'Alice should have 3 total games');
+    assertEquals(aliceStats.winPercent, '66.7', 'Alice should have 66.7% win rate');
+    assertEquals(aliceStats.pointsWon, 17, 'Alice should have 17 points won (6+6+5)');
+    assertEquals(aliceStats.pointsLost, 13, 'Alice should have 13 points lost (4+3+6)');
+    assertEquals(aliceStats.pointPercent, '56.7', 'Alice should have 56.7% point win rate');
+    assert(aliceStats.totalChampionDays >= 1 && aliceStats.totalChampionDays <= 3, 'Alice should have ~2 days as champion');
+    assert(aliceStats.maxChampionStreak >= 1 && aliceStats.maxChampionStreak <= 3, 'Alice should have ~2 days max streak');
+
     assertEquals(bobStats.wins, 1, 'Bob should have 1 win');
     assertEquals(bobStats.losses, 2, 'Bob should have 2 losses');
+    assertEquals(bobStats.totalGames, 3, 'Bob should have 3 total games');
+    assertEquals(bobStats.winPercent, '33.3', 'Bob should have 33.3% win rate');
+    assertEquals(bobStats.pointsWon, 13, 'Bob should have 13 points won (4+3+6)');
+    assertEquals(bobStats.pointsLost, 17, 'Bob should have 17 points lost (6+6+5)');
+    assertEquals(bobStats.pointPercent, '43.3', 'Bob should have 43.3% point win rate');
+    assert(bobStats.totalChampionDays >= 0 && bobStats.totalChampionDays <= 2, 'Bob should have ~1 day as champion');
+    assert(bobStats.maxChampionStreak >= 0 && bobStats.maxChampionStreak <= 2, 'Bob should have ~1 day max streak');
 }
 
 function testCalculateChampionshipDuration() {

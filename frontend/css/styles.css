@@ -122,6 +122,41 @@ li {
     color: #e0e7ff;
 }
 
+.stats-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 8px 0;
+    background: #1e3a8a;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.stats-table thead {
+    background: #0b1c3d;
+}
+
+.stats-table th {
+    padding: 10px;
+    text-align: left;
+    font-weight: 700;
+    color: #ffd700;
+    border-bottom: 2px solid #ffffff;
+}
+
+.stats-table td {
+    padding: 10px;
+    color: #ffffff;
+    border-bottom: 1px solid #3b5998;
+}
+
+.stats-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.stats-table tbody tr:hover {
+    background: #2d4a9e;
+}
+
 /* ===== CHAMPION ===== */
 
 .champion-section {

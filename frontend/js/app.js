@@ -377,9 +377,36 @@ function render() {
     // Calculate stats from game history
     const stats = calculateStats();
 
-    document.getElementById('stats').innerHTML = stats
-        .map(s => `<li>${s.name}: ${s.wins}W / ${s.losses}L</li>`)
-        .join('');
+    if (stats.length === 0) {
+        document.getElementById('stats').innerHTML = '<p>No statistics yet</p>';
+    } else {
+        document.getElementById('stats').innerHTML = `
+            <table class="stats-table">
+                <thead>
+                    <tr>
+                        <th>Player</th>
+                        <th>Win Games %</th>
+                        <th>Total Games</th>
+                        <th>Point Win %</th>
+                        <th>Champion Days</th>
+                        <th>Max Streak</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${stats.map(s => `
+                        <tr>
+                            <td>${s.name}</td>
+                            <td>${s.winPercent}%</td>
+                            <td>${s.totalGames}</td>
+                            <td>${s.pointPercent}%</td>
+                            <td>${s.totalChampionDays}</td>
+                            <td>${s.maxChampionStreak}</td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        `;
+    }
 
     const champ = players.find(p => p.id === championship.championId);
     document.getElementById('champion').innerText =
