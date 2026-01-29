@@ -111,7 +111,22 @@ async function loadState() {
     renderGameHistory();
 }
 
-function saveState() {
+function showNotification(message, type = 'error') {
+    const notification = document.getElementById('notification');
+    notification.textContent = message;
+    notification.className = `notification ${type} show`;
+
+    setTimeout(() => {
+        notification.classList.remove('show');
+    }, 3000);
+}
+
+function saveState(cause) {
+    const stateWithCause = {
+        ...getStateForSave(),
+        cause
+    };
+
     fetch(`${API_URL}/state`, {
         method: 'POST',
         credentials: 'include',
@@ -119,9 +134,10 @@ function saveState() {
             'Content-Type': 'application/json',
             ...getAuthHeaders()
         },
-        body: JSON.stringify(getStateForSave())
+        body: JSON.stringify(stateWithCause)
     }).catch(err => {
         console.error('Failed to save state', err);
+        showNotification('Failed to save. Please check your connection.');
     });
 }
 
@@ -148,7 +164,7 @@ function addPlayer() {
 
     input.value = '';
     document.getElementById('addPlayerForm').style.display = 'none';
-    saveState();
+    saveState('New player');
     render();
 }
 
@@ -262,7 +278,7 @@ function addMatch() {
     score2 = null;
     renderScoreCircles();
 
-    saveState();
+    saveState('New game');
     render();
     renderGameHistory();
 }
@@ -304,7 +320,7 @@ function changeChampion() {
     setChampion(newId);
 
     document.getElementById('changeChampionForm').style.display = 'none';
-    saveState();
+    saveState('New champion');
     render();
     renderGameHistory();
 }
@@ -340,7 +356,7 @@ function removeHistoryEvent(type, index) {
         removeChampionshipEventFromHistory(index);
     }
 
-    saveState();
+    saveState('Remove history event');
     render();
     renderGameHistory();
 }

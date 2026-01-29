@@ -38,7 +38,7 @@ export async function readState() {
     }
 }
 
-export async function writeState(data, sha) {
+export async function writeState(data, sha, cause) {
     const content = Buffer
         .from(JSON.stringify(data, null, 2))
         .toString('base64');
@@ -47,7 +47,7 @@ export async function writeState(data, sha) {
         owner: OWNER,
         repo: REPO,
         path: PATH,
-        message: 'Update Klask state',
+        message: `${cause}`,
         content,
         branch: BRANCH
     };

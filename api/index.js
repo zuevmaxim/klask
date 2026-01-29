@@ -116,7 +116,7 @@ app.get('/api/state', async (req, res) => {
                 }
             };
 
-            await writeState(initial, null);
+            await writeState(initial, null, 'Initialize');
             return res.json(initial);
         }
 
@@ -130,7 +130,8 @@ app.get('/api/state', async (req, res) => {
 app.post('/api/state', async (req, res) => {
     try {
         const { sha } = await readState();
-        await writeState(req.body, sha);
+        const { cause, ...state } = req.body;
+        await writeState(state, sha, cause);
         res.json({ ok: true });
     } catch (err) {
         console.error('Failed to save state', err);

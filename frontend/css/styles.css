@@ -320,6 +320,39 @@ li {
     z-index: 100;
 }
 
+/* ===== NOTIFICATION ===== */
+
+.notification {
+    position: fixed;
+    top: 80px;
+    left: 50%;
+    transform: translateX(-50%) translateY(-20px);
+
+    background: #B73939;
+    color: #FFFFFF;
+    padding: 12px 24px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+
+    font-size: 14px;
+    font-weight: 600;
+    text-align: center;
+
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    z-index: 1000;
+}
+
+.notification.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}
+
+.notification.success {
+    background: #2D8659;
+}
+
 /* ===== SMALL MOBILE TWEAKS ===== */
 
 @media (max-width: 400px) {
