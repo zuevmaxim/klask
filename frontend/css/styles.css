@@ -284,11 +284,11 @@ li {
 
 .klask-board {
     position: relative;
-    width: calc(30vw * 0.64);
-    height: 30vw;
+    width: calc(45vw * 0.64);
+    height: 45vw;
     background: #1F5FBF; /* Game Surface Blue */
     border-radius: 1%;
-    border: 0.7vw solid #111111;
+    border: 1.05vw solid #111111;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
     overflow: hidden;
 }
@@ -297,51 +297,51 @@ li {
     position: absolute;
     left: 50%;
     transform: translateX(-50%);
-    width: 3.5vw;
-    height: 3.5vw;
+    width: 5.25vw;
+    height: 5.25vw;
     background: #decdbb; /* Darker wood color */
     border-radius: 50%;
     z-index: 1;
 }
 
 .goal-left {
-    top: 2vw;
+    top: 3vw;
 }
 
 .goal-right {
-    bottom: 2vw;
+    bottom: 3vw;
 }
 
 .piece {
     position: absolute;
-    width: 2.5vw;
-    height: 2.5vw;
+    width: 3.75vw;
+    height: 3.75vw;
     border-radius: 50%;
     z-index: 2;
     background: #111111;
 }
 
 .piece-1 {
-    top: 3vw;
-    left: 14vw;
+    top: 4.5vw;
+    left: 21vw;
     animation: movePiece1 3s linear infinite;
 }
 
 .piece-2 {
-    top: 18vw;
-    left: 4vw;
+    top: 27vw;
+    left: 6vw;
     animation: movePiece2 0.375s linear infinite;
 }
 
 .ball {
     position: absolute;
-    width: 3vw;
-    height: 3vw;
+    width: 4.5vw;
+    height: 4.5vw;
     background: #ffa500;
     border-radius: 50%;
-    border: 0.35vw solid #111111;
-    top: 12vw;
-    left: 6.5vw;
+    border: 0.525vw solid #111111;
+    top: 18vw;
+    left: 9.75vw;
     z-index: 3;
     animation: moveBall 3s linear infinite;
 }
@@ -349,11 +349,11 @@ li {
 /* ===== CSS VARIABLES ===== */
 
 :root {
-    --by: 2vw;
-    --bx: 7.5vw;
-    --py: 3.5vw;
-    --vx: 5vw;
-    --px: 6vw;
+    --by: 3vw;
+    --bx: 11.25vw;
+    --py: 5.25vw;
+    --vx: 7.5vw;
+    --px: 9vw;
 }
 
 @keyframes movePiece1 {
