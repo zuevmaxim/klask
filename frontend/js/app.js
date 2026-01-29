@@ -37,12 +37,24 @@ async function handleAuthResponse(res) {
     return res;
 }
 
+function hideLoadingScreen() {
+    const loadingScreen = document.getElementById('loadingScreen');
+    loadingScreen.classList.add('fade-out');
+
+    // Remove from DOM after fade animation completes
+    setTimeout(() => {
+        loadingScreen.style.display = 'none';
+    }, 1000); // Match the CSS transition duration
+}
+
 function showLoginScreen() {
+    hideLoadingScreen();
     document.getElementById('loginScreen').style.display = 'flex';
     document.getElementById('mainApp').style.display = 'none';
 }
 
 function showMainApp() {
+    hideLoadingScreen();
     document.getElementById('loginScreen').style.display = 'none';
     document.getElementById('mainApp').style.display = 'block';
 }
@@ -507,14 +519,39 @@ function render() {
 }
 
 /* ===============================
+   LOADING
+================================ */
+
+async function initializeApp() {
+    const loadStartTime = Date.now();
+    const minLoadTime = 3000; // 3 seconds
+
+    const token = localStorage.getItem(TOKEN_KEY);
+
+    if (token) {
+        // Load state and show main app
+        await loadState();
+
+        // Calculate remaining time to show loading screen
+        const elapsed = Date.now() - loadStartTime;
+        const remainingTime = Math.max(0, minLoadTime - elapsed);
+
+        setTimeout(() => {
+            showMainApp();
+        }, remainingTime);
+    } else {
+        // Show login after minimum loading time
+        const elapsed = Date.now() - loadStartTime;
+        const remainingTime = Math.max(0, minLoadTime - elapsed);
+
+        setTimeout(() => {
+            showLoginScreen();
+        }, remainingTime);
+    }
+}
+
+/* ===============================
    START
 ================================ */
 
-// Check if user has token, otherwise show login
-const token = localStorage.getItem(TOKEN_KEY);
-if (token) {
-    showMainApp();
-    loadState();
-} else {
-    showLoginScreen();
-}
+initializeApp();
