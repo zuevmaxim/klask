@@ -284,8 +284,8 @@ li {
 
 .klask-board {
     position: relative;
-    width: 30vw;
-    height: calc(30vw * 0.64); /* Maintain aspect ratio */
+    width: calc(30vw * 0.64);
+    height: 30vw;
     background: #1F5FBF; /* Game Surface Blue */
     border-radius: 1%;
     border: 0.7vw solid #111111;
@@ -295,8 +295,8 @@ li {
 
 .goal-hole {
     position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
+    left: 50%;
+    transform: translateX(-50%);
     width: 3.5vw;
     height: 3.5vw;
     background: #decdbb; /* Darker wood color */
@@ -305,11 +305,11 @@ li {
 }
 
 .goal-left {
-    left: 2vw;
+    top: 2vw;
 }
 
 .goal-right {
-    right: 2vw;
+    bottom: 2vw;
 }
 
 .piece {
@@ -322,14 +322,14 @@ li {
 }
 
 .piece-1 {
-    top: 14vw;
-    left: 3vw;
+    top: 3vw;
+    left: 14vw;
     animation: movePiece1 3s linear infinite;
 }
 
 .piece-2 {
-    top: 4vw;
-    left: 18vw;
+    top: 18vw;
+    left: 4vw;
     animation: movePiece2 0.375s linear infinite;
 }
 
@@ -340,8 +340,8 @@ li {
     background: #ffa500;
     border-radius: 50%;
     border: 0.35vw solid #111111;
-    top: 7.5vw;
-    left: 12vw;
+    top: 12vw;
+    left: 6.5vw;
     z-index: 3;
     animation: moveBall 3s linear infinite;
 }
@@ -349,11 +349,11 @@ li {
 /* ===== CSS VARIABLES ===== */
 
 :root {
-    --bx: 2vw;
-    --by: 7.5vw;
-    --px: 3.5vw;
-    --vy: 5vw;
-    --py: 6vw;
+    --by: 2vw;
+    --bx: 7.5vw;
+    --py: 3.5vw;
+    --vx: 5vw;
+    --px: 6vw;
 }
 
 @keyframes movePiece1 {
@@ -361,10 +361,10 @@ li {
         transform: translate(0vw, 0vw);
     }
     25% {
-        transform: translate(calc(1 * var(--px)), calc(-1 * var(--py)));
+        transform: translate(calc(-1 * var(--px)), calc(1 * var(--py)));
     }
     50% {
-        transform: translate(calc(0 * var(--px)), calc(-2 * var(--py)));
+        transform: translate(calc(-2 * var(--px)), calc(0 * var(--py)));
     }
     75% {
         transform: translate(calc(-1 * var(--px)), calc(-1 * var(--py)));
@@ -376,13 +376,13 @@ li {
         transform: translate(0vw, 0vw);
     }
     25% {
-        transform: translate(0vw, calc(1 * var(--vy)));
+        transform: translate(calc(1 * var(--vx)), 0vw);
     }
     50% {
-        transform: translate(0vw, calc(2 * var(--vy)));
+        transform: translate(calc(2 * var(--vx)), 0vw);
     }
     75% {
-        transform: translate(0vw, calc(1 * var(--vy)));
+        transform: translate(calc(1 * var(--vx)), 0vw);
     }
 }
 
@@ -392,10 +392,10 @@ li {
         transform: translate(0vw, 0vw);
     }
     12.5% {
-        transform: translate(calc(-1 * var(--bx)), var(--by));
+        transform: translate(var(--bx), calc(-1 * var(--by)));
     }
     25% {
-        transform: translate(calc(-2 * var(--bx)), 0vw);
+        transform: translate(0vw, calc(-2 * var(--by)));
     }
     37.5% {
         transform: translate(calc(-1 * var(--bx)), calc(-1 * var(--by)));
@@ -407,10 +407,10 @@ li {
         transform: translate(var(--bx), var(--by));
     }
     75% {
-        transform: translate(calc(2 * var(--bx)), 0vw);
+        transform: translate(0vw, calc(2 * var(--by)));
     }
     87.5% {
-        transform: translate(calc(1 * var(--bx)), calc(-1 * var(--by)));
+        transform: translate(calc(-1 * var(--bx)), calc(1 * var(--by)));
     }
 }
 
