@@ -76,18 +76,14 @@ function auth(req, res, next) {
     return basicAuth(req, res, next);
 }
 
-// ===== AWS S3 =====
-import {S3Client, GetObjectCommand, PutObjectCommand} from '@aws-sdk/client-s3';
+// ===== GitHub Storage =====
+import { readState, writeState } from './githubStore.js';
 
-const s3 = new S3Client({
-    region: process.env.AWS_REGION, credentials: {
-        accessKeyId: process.env.AWS_ACCESS_KEY_ID, secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
-    }
-});
-
-
-const BUCKET = process.env.S3_BUCKET;
-const KEY = 'data.json';
+// Validate required environment variables
+if (!process.env.GITHUB_TOKEN || !process.env.GITHUB_OWNER || !process.env.GITHUB_REPO || !process.env.GITHUB_PATH) {
+    console.error('❌ GitHub environment variables not set: GITHUB_TOKEN, GITHUB_OWNER, GITHUB_REPO, GITHUB_PATH');
+    process.exit(1);
+}
 
 // ===== Routes =====
 app.post('/api/login', (req, res) => {
@@ -108,20 +104,38 @@ app.post('/api/login', (req, res) => {
 app.use(auth);
 app.get('/api/state', async (req, res) => {
     try {
-        const data = await s3.send(new GetObjectCommand({Bucket: BUCKET, Key: KEY}));
-        const bodyString = await data.Body.transformToString();
-        res.setHeader('Content-Type', 'application/json');
-        res.send(bodyString);
+        const { data, sha } = await readState();
+
+        if (!data) {
+            const initial = {
+                players: [],
+                championship: {
+                    championId: null,
+                    challengerId: null,
+                    winsInRow: 0
+                }
+            };
+
+            await writeState(initial, null);
+            return res.json(initial);
+        }
+
+        res.json(data);
     } catch (err) {
-        console.error('Failed to load initial state', err);
+        console.error('Failed to load state', err);
         return res.status(500).send(err.message);
     }
 });
 
 app.post('/api/state', async (req, res) => {
-    const body = JSON.stringify(req.body, null, 2);
-    await s3.send(new PutObjectCommand({Bucket: BUCKET, Key: KEY, Body: body}));
-    res.json({ok: true});
+    try {
+        const { sha } = await readState();
+        await writeState(req.body, sha);
+        res.json({ ok: true });
+    } catch (err) {
+        console.error('Failed to save state', err);
+        return res.status(500).send(err.message);
+    }
 });
 
 // Export app as default
