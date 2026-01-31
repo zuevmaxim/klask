@@ -38,6 +38,11 @@ function runTests() {
         testSetChampionManual,
         testCalculateStats,
         testCalculateChampionshipDuration,
+        testChampionDaysWonAndLostSameDay,
+        testChampionDaysDefendedTwoDays,
+        testChampionDaysNoPlayOnOneDay,
+        testChampionDaysMultipleGamesPerDay,
+        testChampionDaysOnlyLosses,
         testRemoveGameFromHistory,
         testRemoveChampionshipEventFromHistory,
         testLoadStateFromData,
@@ -211,21 +216,6 @@ function testCalculateStats() {
     games.push({ player1Id: aliceId, player2Id: bobId, score1: 6, score2: 3 });
     games.push({ player1Id: bobId, player2Id: aliceId, score1: 6, score2: 5 });
 
-    // Add championship history
-    const threeDaysAgo = new Date();
-    threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
-    const oneDayAgo = new Date();
-    oneDayAgo.setDate(oneDayAgo.getDate() - 1);
-
-    championshipHistory.push({
-        date: threeDaysAgo.toISOString(),
-        newChampionId: aliceId
-    });
-    championshipHistory.push({
-        date: oneDayAgo.toISOString(),
-        newChampionId: bobId
-    });
-
     const stats = calculateStats();
 
     assertEquals(stats.length, 2, 'Should have stats for 2 players');
@@ -240,8 +230,6 @@ function testCalculateStats() {
     assertEquals(aliceStats.pointsWon, 17, 'Alice should have 17 points won (6+6+5)');
     assertEquals(aliceStats.pointsLost, 13, 'Alice should have 13 points lost (4+3+6)');
     assertEquals(aliceStats.pointPercent, '56.7', 'Alice should have 56.7% point win rate');
-    assert(aliceStats.totalChampionDays >= 1 && aliceStats.totalChampionDays <= 3, 'Alice should have ~2 days as champion');
-    assert(aliceStats.maxChampionStreak >= 1 && aliceStats.maxChampionStreak <= 3, 'Alice should have ~2 days max streak');
 
     assertEquals(bobStats.wins, 1, 'Bob should have 1 win');
     assertEquals(bobStats.losses, 2, 'Bob should have 2 losses');
@@ -250,8 +238,6 @@ function testCalculateStats() {
     assertEquals(bobStats.pointsWon, 13, 'Bob should have 13 points won (4+3+6)');
     assertEquals(bobStats.pointsLost, 17, 'Bob should have 17 points lost (6+6+5)');
     assertEquals(bobStats.pointPercent, '43.3', 'Bob should have 43.3% point win rate');
-    assert(bobStats.totalChampionDays >= 0 && bobStats.totalChampionDays <= 2, 'Bob should have ~1 day as champion');
-    assert(bobStats.maxChampionStreak >= 0 && bobStats.maxChampionStreak <= 2, 'Bob should have ~1 day max streak');
 }
 
 function testCalculateChampionshipDuration() {
@@ -272,6 +258,246 @@ function testCalculateChampionshipDuration() {
 
     duration = calculateChampionshipDuration(aliceId);
     assert(duration >= 1 && duration <= 2, 'Duration should be around 2 days');
+}
+
+// Test: A became champion on Wednesday, lost on Thursday (played both days) -> counts as 1 day
+function testChampionDaysWonAndLostSameDay() {
+    addPlayerToState('Alice');
+    addPlayerToState('Bob');
+    const aliceId = players[0].id;
+    const bobId = players[1].id;
+
+    const wednesday = new Date('2024-01-03T10:00:00Z');
+    const thursday = new Date('2024-01-04T10:00:00Z');
+
+    // Alice becomes champion on Wednesday
+    championshipHistory.push({
+        date: wednesday.toISOString(),
+        newChampionId: aliceId
+    });
+
+    // Alice plays and wins on Wednesday
+    games.push({
+        date: wednesday.toISOString(),
+        player1Id: aliceId,
+        player2Id: bobId,
+        score1: 6,
+        score2: 4
+    });
+
+    // Alice plays on Thursday but loses (this day should NOT count)
+    games.push({
+        date: thursday.toISOString(),
+        player1Id: aliceId,
+        player2Id: bobId,
+        score1: 4,
+        score2: 6
+    });
+
+    // Bob becomes champion on Thursday (Alice lost)
+    championshipHistory.push({
+        date: thursday.toISOString(),
+        newChampionId: bobId
+    });
+
+    const stats = calculateStats();
+    const aliceStats = stats.find(s => s.name === 'Alice');
+
+    assertEquals(aliceStats.totalChampionDays, 1, 'Alice should have 1 champion day (Wed only, Thu does not count)');
+}
+
+// Test: A became champion on Wednesday, defended on Thursday, lost on Friday -> counts as 2 days
+function testChampionDaysDefendedTwoDays() {
+    addPlayerToState('Alice');
+    addPlayerToState('Bob');
+    const aliceId = players[0].id;
+    const bobId = players[1].id;
+
+    const wednesday = new Date('2024-01-03T10:00:00Z');
+    const thursday = new Date('2024-01-04T10:00:00Z');
+    const friday = new Date('2024-01-05T10:00:00Z');
+
+    // Alice becomes champion on Wednesday
+    championshipHistory.push({
+        date: wednesday.toISOString(),
+        newChampionId: aliceId
+    });
+
+    // Alice plays on Wednesday
+    games.push({
+        date: wednesday.toISOString(),
+        player1Id: aliceId,
+        player2Id: bobId,
+        score1: 6,
+        score2: 4
+    });
+
+    // Alice plays and wins on Thursday (defended)
+    games.push({
+        date: thursday.toISOString(),
+        player1Id: aliceId,
+        player2Id: bobId,
+        score1: 6,
+        score2: 3
+    });
+
+    // Bob becomes champion on Friday
+    championshipHistory.push({
+        date: friday.toISOString(),
+        newChampionId: bobId
+    });
+
+    const stats = calculateStats();
+    const aliceStats = stats.find(s => s.name === 'Alice');
+
+    assertEquals(aliceStats.totalChampionDays, 2, 'Alice should have 2 champion days (Wed + Thu)');
+}
+
+// Test: A became champion on Wednesday, did not play on Thursday, lost on Friday -> counts as 1 day
+function testChampionDaysNoPlayOnOneDay() {
+    addPlayerToState('Alice');
+    addPlayerToState('Bob');
+    const aliceId = players[0].id;
+    const bobId = players[1].id;
+
+    const wednesday = new Date('2024-01-03T10:00:00Z');
+    const thursday = new Date('2024-01-04T10:00:00Z');
+    const friday = new Date('2024-01-05T10:00:00Z');
+
+    // Alice becomes champion on Wednesday
+    championshipHistory.push({
+        date: wednesday.toISOString(),
+        newChampionId: aliceId
+    });
+
+    // Alice plays on Wednesday
+    games.push({
+        date: wednesday.toISOString(),
+        player1Id: aliceId,
+        player2Id: bobId,
+        score1: 6,
+        score2: 4
+    });
+
+    // No games on Thursday
+
+    // Bob becomes champion on Friday
+    championshipHistory.push({
+        date: friday.toISOString(),
+        newChampionId: bobId
+    });
+
+    const stats = calculateStats();
+    const aliceStats = stats.find(s => s.name === 'Alice');
+
+    assertEquals(aliceStats.totalChampionDays, 1, 'Alice should have 1 champion day (only Wed, did not play Thu)');
+}
+
+// Test: Multiple games on the same day should count as 1 day
+function testChampionDaysMultipleGamesPerDay() {
+    addPlayerToState('Alice');
+    addPlayerToState('Bob');
+    const aliceId = players[0].id;
+    const bobId = players[1].id;
+
+    const wednesday = new Date('2024-01-03T10:00:00Z');
+    const thursday = new Date('2024-01-04T10:00:00Z');
+
+    // Alice becomes champion on Wednesday
+    championshipHistory.push({
+        date: wednesday.toISOString(),
+        newChampionId: aliceId
+    });
+
+    // Alice plays 3 games on Wednesday
+    games.push({
+        date: wednesday.toISOString(),
+        player1Id: aliceId,
+        player2Id: bobId,
+        score1: 6,
+        score2: 4
+    });
+    games.push({
+        date: new Date('2024-01-03T14:00:00Z').toISOString(),
+        player1Id: aliceId,
+        player2Id: bobId,
+        score1: 6,
+        score2: 2
+    });
+    games.push({
+        date: new Date('2024-01-03T18:00:00Z').toISOString(),
+        player1Id: bobId,
+        player2Id: aliceId,
+        score1: 6,
+        score2: 5
+    });
+
+    // Bob becomes champion on Thursday
+    championshipHistory.push({
+        date: thursday.toISOString(),
+        newChampionId: bobId
+    });
+
+    const stats = calculateStats();
+    const aliceStats = stats.find(s => s.name === 'Alice');
+
+    assertEquals(aliceStats.totalChampionDays, 1, 'Alice should have 1 champion day (3 games on same day = 1 day)');
+}
+
+// Test: Champion plays but loses -> days before losing count
+function testChampionDaysOnlyLosses() {
+    addPlayerToState('Alice');
+    addPlayerToState('Bob');
+    const aliceId = players[0].id;
+    const bobId = players[1].id;
+
+    const wednesday = new Date('2024-01-03T10:00:00Z');
+    const thursday = new Date('2024-01-04T10:00:00Z');
+    const friday = new Date('2024-01-05T10:00:00Z');
+
+    // Alice becomes champion on Wednesday
+    championshipHistory.push({
+        date: wednesday.toISOString(),
+        newChampionId: aliceId
+    });
+
+    // Alice wins on Wednesday
+    games.push({
+        date: wednesday.toISOString(),
+        player1Id: aliceId,
+        player2Id: bobId,
+        score1: 6,
+        score2: 4
+    });
+
+    // Alice plays on Thursday (still champion)
+    games.push({
+        date: thursday.toISOString(),
+        player1Id: aliceId,
+        player2Id: bobId,
+        score1: 6,
+        score2: 4
+    });
+
+    // Alice plays on Friday and loses championship
+    games.push({
+        date: friday.toISOString(),
+        player1Id: aliceId,
+        player2Id: bobId,
+        score1: 4,
+        score2: 6
+    });
+
+    // Bob becomes champion on Friday
+    championshipHistory.push({
+        date: friday.toISOString(),
+        newChampionId: bobId
+    });
+
+    const stats = calculateStats();
+    const aliceStats = stats.find(s => s.name === 'Alice');
+
+    assertEquals(aliceStats.totalChampionDays, 2, 'Alice should have 2 champion days (Wed + Thu, not Fri when lost)');
 }
 
 function testRemoveGameFromHistory() {

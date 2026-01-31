@@ -161,6 +161,7 @@ function calculateStats() {
     });
 
     // Calculate championship days for each player
+    // Only count days when the champion actually defended (won at least one game)
     championshipHistory.forEach((event, index) => {
         const championId = event.newChampionId;
         if (!championId || !stats[championId]) return;
@@ -171,7 +172,26 @@ function calculateStats() {
         const nextEvent = championshipHistory[index + 1];
         const endDate = nextEvent ? new Date(nextEvent.date) : new Date();
 
-        const days = durationInDays(endDate, startDate);
+        // Count only days when the champion played at least one game
+        // Exclude the day when the champion lost their status
+        const defendedDays = new Set();
+        const endDayKey = nextEvent ? new Date(endDate).toDateString() : null;
+
+        games.forEach(game => {
+            const gameDate = new Date(game.date);
+            const gameDayKey = new Date(gameDate).toDateString();
+
+            // Exclude games on the day the championship ended
+            if (gameDayKey === endDayKey) return;
+
+            if (gameDate >= startDate && gameDate < endDate) {
+                if (game.player1Id === championId || game.player2Id === championId) {
+                    defendedDays.add(gameDayKey);
+                }
+            }
+        });
+
+        const days = defendedDays.size;
 
         stats[championId].totalChampionDays += days;
         if (days > stats[championId].maxChampionStreak) {
