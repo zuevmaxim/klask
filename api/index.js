@@ -18,6 +18,9 @@ app.use((req, res, next) => {
     next();
 });
 
+// ===== Check if LOCAL_MODE is enabled =====
+const LOCAL_MODE = process.env.LOCAL_MODE === 'true';
+
 // ===== Authentication =====
 const BASIC_USER = process.env.BASIC_USER;
 const BASIC_PASS = process.env.BASIC_PASS;
@@ -76,13 +79,25 @@ function auth(req, res, next) {
     return basicAuth(req, res, next);
 }
 
-// ===== GitHub Storage =====
-import { readState, writeState } from './githubStore.js';
+// ===== Storage (GitHub or Local) =====
+let readState, writeState;
 
-// Validate required environment variables
-if (!process.env.GITHUB_TOKEN || !process.env.GITHUB_OWNER || !process.env.GITHUB_REPO || !process.env.GITHUB_PATH) {
-    console.error('❌ GitHub environment variables not set: GITHUB_TOKEN, GITHUB_OWNER, GITHUB_REPO, GITHUB_PATH');
-    process.exit(1);
+if (LOCAL_MODE) {
+    console.log('✅ Running in LOCAL_MODE (no GitHub auth required)');
+    const localStore = await import('./localStore.js');
+    readState = localStore.readState;
+    writeState = localStore.writeState;
+} else {
+    console.log('✅ Running with GitHub storage');
+    const githubStore = await import('./githubStore.js');
+    readState = githubStore.readState;
+    writeState = githubStore.writeState;
+
+    // Validate required environment variables for GitHub mode
+    if (!process.env.GITHUB_TOKEN || !process.env.GITHUB_OWNER || !process.env.GITHUB_REPO || !process.env.GITHUB_PATH) {
+        console.error('❌ GitHub environment variables not set: GITHUB_TOKEN, GITHUB_OWNER, GITHUB_REPO, GITHUB_PATH');
+        process.exit(1);
+    }
 }
 
 // ===== Routes =====
