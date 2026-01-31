@@ -420,16 +420,28 @@ function renderGameHistory() {
             const prevName = prevChamp ? prevChamp.name : 'None';
             const reason = event.reason === 'manual' ? '(manual)' : '';
 
-            // Format duration
             let durationText = '';
-            if (event.previousChampionDurationDays !== null && event.previousChampionDurationDays !== undefined) {
-                const days = event.previousChampionDurationDays;
-                if (days === 0) {
-                    durationText = ' - held for <1 day';
-                } else if (days === 1) {
-                    durationText = ' - held for 1 day';
-                } else {
-                    durationText = ` - held for ${days} days`;
+            if (event.previousChampionId) {
+                // Find when the previous champion started
+                let prevChampStartDate = null;
+                for (let i = event.originalIndex - 1; i >= 0; i--) {
+                    if (championshipHistory[i].newChampionId === event.previousChampionId) {
+                        prevChampStartDate = new Date(championshipHistory[i].date);
+                        break;
+                    }
+                }
+
+                if (prevChampStartDate) {
+                    const endDate = new Date(event.date);
+                    const days = calculateChampionDaysForPeriod(event.previousChampionId, prevChampStartDate, endDate);
+
+                    if (days === 0) {
+                        durationText = ' - held for <1 day';
+                    } else if (days === 1) {
+                        durationText = ' - held for 1 day';
+                    } else {
+                        durationText = ` - held for ${days} days`;
+                    }
                 }
             }
 

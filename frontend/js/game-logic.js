@@ -36,6 +36,28 @@ function calculateChampionshipDuration(championId) {
     return durationInDays(end, start);
 }
 
+// Calculate champion days for a specific championship period
+function calculateChampionDaysForPeriod(championId, startDate, endDate) {
+    const defendedDays = new Set();
+    const endDayKey = endDate ? new Date(endDate).toDateString() : null;
+
+    games.forEach(game => {
+        const gameDate = new Date(game.date);
+        const gameDayKey = new Date(gameDate).toDateString();
+
+        // Exclude games on the day the championship ended
+        if (gameDayKey === endDayKey) return;
+
+        if (gameDate >= startDate && gameDate < endDate) {
+            if (game.player1Id === championId || game.player2Id === championId) {
+                defendedDays.add(gameDayKey);
+            }
+        }
+    });
+
+    return defendedDays.size;
+}
+
 function addPlayerToState(name) {
     // Use Date.now() + players.length to ensure unique IDs even in quick succession
     const player = {
@@ -84,8 +106,7 @@ function processMatchResult(p1Id, p2Id, score1, score2) {
                 date: now,
                 newChampionId: winnerId,
                 previousChampionId: loserId,
-                reason: 'game',
-                previousChampionDurationDays: calculateChampionshipDuration(loserId)
+                reason: 'game'
             });
 
             championship.championId = winnerId;
@@ -109,8 +130,7 @@ function setChampion(newChampionId) {
             date: new Date().toISOString(),
             newChampionId: newChampionId,
             previousChampionId: championship.championId,
-            reason: 'manual',
-            previousChampionDurationDays: calculateChampionshipDuration(championship.championId)
+            reason: 'manual'
         });
     }
 
@@ -161,7 +181,7 @@ function calculateStats() {
     });
 
     // Calculate championship days for each player
-    // Only count days when the champion actually defended (won at least one game)
+    // Only count days when the champion played at least one game
     championshipHistory.forEach((event, index) => {
         const championId = event.newChampionId;
         if (!championId || !stats[championId]) return;
@@ -172,26 +192,7 @@ function calculateStats() {
         const nextEvent = championshipHistory[index + 1];
         const endDate = nextEvent ? new Date(nextEvent.date) : new Date();
 
-        // Count only days when the champion played at least one game
-        // Exclude the day when the champion lost their status
-        const defendedDays = new Set();
-        const endDayKey = nextEvent ? new Date(endDate).toDateString() : null;
-
-        games.forEach(game => {
-            const gameDate = new Date(game.date);
-            const gameDayKey = new Date(gameDate).toDateString();
-
-            // Exclude games on the day the championship ended
-            if (gameDayKey === endDayKey) return;
-
-            if (gameDate >= startDate && gameDate < endDate) {
-                if (game.player1Id === championId || game.player2Id === championId) {
-                    defendedDays.add(gameDayKey);
-                }
-            }
-        });
-
-        const days = defendedDays.size;
+        const days = calculateChampionDaysForPeriod(championId, startDate, endDate);
 
         stats[championId].totalChampionDays += days;
         if (days > stats[championId].maxChampionStreak) {
