@@ -68,6 +68,16 @@ function addPlayerToState(name) {
     return player;
 }
 
+function championChangedToday(today) {
+    if (championshipHistory.length <= 0) return false;
+
+    const lastEvent = championshipHistory[championshipHistory.length - 1];
+    const lastEventDate = new Date(lastEvent.date).toDateString();
+
+    return lastEventDate === today;
+
+}
+
 function processMatchResult(p1Id, p2Id, score1, score2) {
     const winnerId = score1 > score2 ? p1Id : p2Id;
     const loserId = score1 > score2 ? p2Id : p1Id;
@@ -101,7 +111,7 @@ function processMatchResult(p1Id, p2Id, score1, score2) {
             championship.lastWinDate = today;
         }
 
-        if (championship.winsInRow === 2) {
+        if (championship.winsInRow === 2 && !championChangedToday(today)) {
             championshipHistory.push({
                 date: now,
                 newChampionId: winnerId,
@@ -121,7 +131,7 @@ function processMatchResult(p1Id, p2Id, score1, score2) {
         championship.lastWinDate = null;
     }
 
-    return { championChanged };
+    return {championChanged};
 }
 
 function setChampion(newChampionId) {

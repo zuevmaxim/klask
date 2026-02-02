@@ -36,6 +36,7 @@ function runTests() {
         testProcessMatchResultChallengerWinsTwiceDifferentDay,
         testProcessMatchResultChampionDefends,
         testSetChampionManual,
+        testSetChampionCannotChangeTwiceInOneDay,
         testCalculateStats,
         testCalculateChampionshipDuration,
         testChampionDaysWonAndLostSameDay,
@@ -197,12 +198,42 @@ function testSetChampionManual() {
     assertEquals(championshipHistory.length, 1, 'Should have 1 championship event after setting Alice');
     assertEquals(championshipHistory[0].reason, 'manual', 'Reason should be manual');
     assertEquals(championshipHistory[0].previousChampionId, null, 'Previous champion should be null');
+}
 
-    // Set Bob as champion (from Alice, creates another history event)
+function testSetChampionCannotChangeTwiceInOneDay() {
+    addPlayerToState('Alice');
+    addPlayerToState('Bob');
+    addPlayerToState('Charlie');
+    const aliceId = players[0].id;
+    const bobId = players[1].id;
+    const charlieId = players[2].id;
+
+    // Set Alice as champion manually (from null)
+    setChampion(aliceId);
+    assertEquals(championship.championId, aliceId, 'Alice should be champion');
+    assertEquals(championshipHistory.length, 1, 'Should have 1 championship event');
+
+    // Bob wins twice to try to take championship on the same day
+    processMatchResult(aliceId, bobId, 4, 6); // First win
+    assertEquals(championship.winsInRow, 1, 'Bob should have 1 win in a row');
+
+    // Try to win championship on same day (should be silently skipped)
+    processMatchResult(aliceId, bobId, 4, 6); // Second win (same day)
+
+    // Championship should not have changed
+    assertEquals(championship.championId, aliceId, 'Alice should still be champion');
+    assertEquals(championshipHistory.length, 1, 'Should still have only 1 championship event');
+    assertEquals(championship.winsInRow, 2, 'Bob should still have 2 wins in a row');
+
+    // Manual champion change should still be allowed on the same day
+    setChampion(charlieId);
+    assertEquals(championship.championId, charlieId, 'Charlie should be champion (manual change allowed)');
+    assertEquals(championshipHistory.length, 2, 'Should now have 2 championship events');
+
+    // Manual champion change can happen multiple times per day
     setChampion(bobId);
-    assertEquals(championship.championId, bobId, 'Bob should be champion');
-    assertEquals(championshipHistory.length, 2, 'Should have 2 championship events after setting Bob');
-    assertEquals(championshipHistory[1].previousChampionId, aliceId, 'Previous champion should be Alice');
+    assertEquals(championship.championId, bobId, 'Bob should be champion (manual change allowed)');
+    assertEquals(championshipHistory.length, 3, 'Should now have 3 championship events');
 }
 
 function testCalculateStats() {
