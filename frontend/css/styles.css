@@ -130,10 +130,15 @@ li {
     color: #FFFFFF;
 }
 
+.stats-table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+    margin: 8px 0;
+}
+
 .stats-table {
     width: 100%;
     border-collapse: collapse;
-    margin: 8px 0;
     background: #FFFFFF;
     border-radius: 8px;
     overflow: hidden;
@@ -551,15 +556,16 @@ li {
 @media (max-width: 480px) {
     .stats-table {
         font-size: 11px;
-        display: block;
-        overflow-x: auto;
-        white-space: nowrap;
+        display: table;
+        min-width: 100%;
+        table-layout: auto;
     }
 
     .stats-table th,
     .stats-table td {
         padding: 6px 3px;
         text-align: center;
+        white-space: nowrap;
     }
 }
 

@@ -498,33 +498,35 @@ function render() {
         document.getElementById('stats').innerHTML = '<p>No statistics yet</p>';
     } else {
         document.getElementById('stats').innerHTML = `
-            <table class="stats-table">
-                <thead>
-                    <tr>
-                        <th>Player</th>
-                        <th>Win %</th>
-                        <th>Games</th>
-                        <th>Points %</th>
-                        <th>Champion Days</th>
-                        <th>Max Streak</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${stats.map(s => {
-                        const player = players.find(p => p.name === s.name);
-                        const playerId = player ? player.id : null;
-                        return `
-                        <tr onclick="showHeadToHeadPopup(${playerId})">
-                            <td>${s.name}</td>
-                            <td>${s.winPercent}%</td>
-                            <td>${s.totalGames}</td>
-                            <td>${s.pointPercent}%</td>
-                            <td>${s.totalChampionDays}</td>
-                            <td>${s.maxChampionStreak}</td>
+            <div class="stats-table-wrapper">
+                <table class="stats-table">
+                    <thead>
+                        <tr>
+                            <th>Player</th>
+                            <th>Win %</th>
+                            <th>Games</th>
+                            <th>Points %</th>
+                            <th>Champion Days</th>
+                            <th>Max Streak</th>
                         </tr>
-                    `}).join('')}
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                        ${stats.map(s => {
+                            const player = players.find(p => p.name === s.name);
+                            const playerId = player ? player.id : null;
+                            return `
+                            <tr onclick="showHeadToHeadPopup(${playerId})">
+                                <td>${s.name}</td>
+                                <td>${s.winPercent}%</td>
+                                <td>${s.totalGames}</td>
+                                <td>${s.pointPercent}%</td>
+                                <td>${s.totalChampionDays}</td>
+                                <td>${s.maxChampionStreak}</td>
+                            </tr>
+                        `}).join('')}
+                    </tbody>
+                </table>
+            </div>
         `;
     }
 
