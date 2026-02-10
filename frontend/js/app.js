@@ -541,30 +541,38 @@ function render() {
 
 async function initializeApp() {
     const loadStartTime = Date.now();
-    const minLoadTime = 3000; // 3 seconds
+    let handler = null;
+    let minLoadTime = 2000;
+    let timeoutId = null;
+
+    const loadingScreen = document.getElementById('loadingScreen');
+    loadingScreen.addEventListener('click', () => {
+        minLoadTime = 0;
+        if (handler) {
+            if (timeoutId) {
+                clearTimeout(timeoutId);
+            }
+            handler();
+        }
+    });
 
     const token = localStorage.getItem(TOKEN_KEY);
-
     if (token) {
         // Load state and show main app
         await loadState();
-
-        // Calculate remaining time to show loading screen
-        const elapsed = Date.now() - loadStartTime;
-        const remainingTime = Math.max(0, minLoadTime - elapsed);
-
-        setTimeout(() => {
+        handler = () => {
             showMainApp();
-        }, remainingTime);
+        };
     } else {
-        // Show login after minimum loading time
-        const elapsed = Date.now() - loadStartTime;
-        const remainingTime = Math.max(0, minLoadTime - elapsed);
-
-        setTimeout(() => {
+        handler = () => {
             showLoginScreen();
-        }, remainingTime);
+        };
+
     }
+    // Calculate remaining time to show loading screen
+    const elapsed = Date.now() - loadStartTime;
+    const remainingTime = Math.max(0, minLoadTime - elapsed);
+    timeoutId = setTimeout(handler, remainingTime);
 }
 
 /* ===============================

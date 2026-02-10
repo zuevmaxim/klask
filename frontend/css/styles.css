@@ -291,7 +291,7 @@ li {
     z-index: 2000;
     gap: 32px;
     opacity: 1;
-    transition: opacity 0.5s ease-out;
+    transition: opacity 0.3s ease-out;
 }
 
 .loading-screen.fade-out {
