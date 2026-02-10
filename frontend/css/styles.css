@@ -562,3 +562,138 @@ li {
         text-align: center;
     }
 }
+
+/* ===== HEAD TO HEAD POPUP ===== */
+
+.h2h-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    z-index: 1500;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+}
+
+.h2h-modal.show {
+    display: flex;
+}
+
+.h2h-modal-content {
+    background: #B89B72;
+    border-radius: 16px;
+    padding: 24px;
+    max-width: 600px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    position: relative;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+}
+
+.h2h-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.h2h-modal-header h2 {
+    color: #111111;
+    margin: 0;
+    font-size: 22px;
+}
+
+.h2h-close-btn {
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+    border-radius: 50%;
+    font-size: 20px;
+    padding: 0;
+    margin: 0;
+    background: #111111;
+    color: #FFFFFF;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+}
+
+.h2h-close-btn:active {
+    transform: scale(0.97);
+}
+
+.h2h-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #FFFFFF;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.h2h-table thead {
+    background: #111111;
+}
+
+.h2h-table th {
+    padding: 10px 8px;
+    text-align: left;
+    font-weight: 700;
+    color: #FFFFFF;
+    border-bottom: 2px solid #ffa500;
+    font-size: 13px;
+}
+
+.h2h-table td {
+    padding: 10px 8px;
+    color: #111111;
+    border-bottom: 1px solid #D8C3A5;
+}
+
+.h2h-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.h2h-table tbody tr:hover {
+    background: #D8C3A5;
+}
+
+.stats-table tbody tr {
+    cursor: pointer;
+}
+
+@media (max-width: 768px) {
+    .h2h-table {
+        font-size: 12px;
+    }
+
+    .h2h-table th,
+    .h2h-table td {
+        padding: 8px 4px;
+    }
+
+    .h2h-modal-content {
+        padding: 16px;
+    }
+}
+
+@media (max-width: 480px) {
+    .h2h-table {
+        font-size: 11px;
+        display: block;
+        overflow-x: auto;
+    }
+
+    .h2h-table th,
+    .h2h-table td {
+        padding: 6px 3px;
+        white-space: nowrap;
+    }
+}

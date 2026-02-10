@@ -254,3 +254,63 @@ function getStateForSave() {
         championshipHistory
     };
 }
+
+function calculateHeadToHead(playerId) {
+    const opponentStats = {};
+
+    // Initialize stats for all other players
+    players.forEach(p => {
+        if (p.id !== playerId) {
+            opponentStats[p.id] = {
+                name: p.name,
+                gamesAgainst: 0,
+                wins: 0,
+                losses: 0,
+                pointsFor: 0,
+                pointsAgainst: 0
+            };
+        }
+    });
+
+    // Calculate head-to-head stats from games
+    games.forEach(game => {
+        let opponentId = null;
+        let playerScore = 0;
+        let opponentScore = 0;
+
+        if (game.player1Id === playerId) {
+            opponentId = game.player2Id;
+            playerScore = game.score1;
+            opponentScore = game.score2;
+        } else if (game.player2Id === playerId) {
+            opponentId = game.player1Id;
+            playerScore = game.score2;
+            opponentScore = game.score1;
+        }
+
+        if (opponentId && opponentStats[opponentId]) {
+            opponentStats[opponentId].gamesAgainst++;
+            opponentStats[opponentId].pointsFor += playerScore;
+            opponentStats[opponentId].pointsAgainst += opponentScore;
+
+            if (playerScore > opponentScore) {
+                opponentStats[opponentId].wins++;
+            } else {
+                opponentStats[opponentId].losses++;
+            }
+        }
+    });
+
+    // Calculate derived stats and return as array
+    return Object.values(opponentStats)
+        .filter(s => s.gamesAgainst > 0)
+        .map(s => ({
+            name: s.name,
+            gamesAgainst: s.gamesAgainst,
+            winBalance: s.wins - s.losses,
+            avgPointDiff: s.gamesAgainst > 0
+                ? ((s.pointsFor - s.pointsAgainst) / s.gamesAgainst).toFixed(1)
+                : 0
+        }))
+        .sort((a, b) => b.gamesAgainst - a.gamesAgainst);
+}

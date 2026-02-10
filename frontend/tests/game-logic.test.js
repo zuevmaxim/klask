@@ -47,7 +47,11 @@ function runTests() {
         testRemoveGameFromHistory,
         testRemoveChampionshipEventFromHistory,
         testLoadStateFromData,
-        testGetStateForSave
+        testGetStateForSave,
+        testCalculateHeadToHeadBasic,
+        testCalculateHeadToHeadMultipleOpponents,
+        testCalculateHeadToHeadNoGames,
+        testCalculateHeadToHeadSortedByGamesCount
     ];
 
     let passed = 0;
@@ -597,6 +601,104 @@ function testGetStateForSave() {
     assert(state.games !== undefined, 'State should have games');
     assert(state.championshipHistory !== undefined, 'State should have championshipHistory');
     assertEquals(state.players.length, 1, 'Should have 1 player in saved state');
+}
+
+function testCalculateHeadToHeadBasic() {
+    addPlayerToState('Alice');
+    addPlayerToState('Bob');
+    const aliceId = players[0].id;
+    const bobId = players[1].id;
+
+    // Alice wins 2 games against Bob
+    games.push({ date: '2024-01-01', player1Id: aliceId, player2Id: bobId, score1: 6, score2: 4 });
+    games.push({ date: '2024-01-02', player1Id: aliceId, player2Id: bobId, score1: 6, score2: 3 });
+    // Bob wins 1 game against Alice
+    games.push({ date: '2024-01-03', player1Id: bobId, player2Id: aliceId, score1: 6, score2: 2 });
+
+    const aliceH2H = calculateHeadToHead(aliceId);
+
+    assertEquals(aliceH2H.length, 1, 'Alice should have stats against 1 opponent');
+    assertEquals(aliceH2H[0].name, 'Bob', 'Opponent should be Bob');
+    assertEquals(aliceH2H[0].gamesAgainst, 3, 'Should have 3 games against Bob');
+    assertEquals(aliceH2H[0].winBalance, 1, 'Win balance should be +1 (2 wins - 1 loss)');
+    // Average point diff: (6-4) + (6-3) + (2-6) = 2 + 3 + (-4) = 1, avg = 1/3 = 0.3
+    assertEquals(aliceH2H[0].avgPointDiff, '0.3', 'Average point difference should be 0.3');
+}
+
+function testCalculateHeadToHeadMultipleOpponents() {
+    addPlayerToState('Alice');
+    addPlayerToState('Bob');
+    addPlayerToState('Charlie');
+    const aliceId = players[0].id;
+    const bobId = players[1].id;
+    const charlieId = players[2].id;
+
+    // Alice vs Bob: 2 games
+    games.push({ date: '2024-01-01', player1Id: aliceId, player2Id: bobId, score1: 6, score2: 4 });
+    games.push({ date: '2024-01-02', player1Id: bobId, player2Id: aliceId, score1: 6, score2: 3 });
+
+    // Alice vs Charlie: 1 game
+    games.push({ date: '2024-01-03', player1Id: aliceId, player2Id: charlieId, score1: 6, score2: 1 });
+
+    const aliceH2H = calculateHeadToHead(aliceId);
+
+    assertEquals(aliceH2H.length, 2, 'Alice should have stats against 2 opponents');
+
+    // Should be sorted by games count (Bob first with 2 games, then Charlie with 1)
+    assertEquals(aliceH2H[0].name, 'Bob', 'First opponent should be Bob (most games)');
+    assertEquals(aliceH2H[0].gamesAgainst, 2, 'Should have 2 games against Bob');
+    assertEquals(aliceH2H[0].winBalance, 0, 'Win balance vs Bob should be 0 (1-1)');
+
+    assertEquals(aliceH2H[1].name, 'Charlie', 'Second opponent should be Charlie');
+    assertEquals(aliceH2H[1].gamesAgainst, 1, 'Should have 1 game against Charlie');
+    assertEquals(aliceH2H[1].winBalance, 1, 'Win balance vs Charlie should be +1');
+}
+
+function testCalculateHeadToHeadNoGames() {
+    addPlayerToState('Alice');
+    addPlayerToState('Bob');
+    const aliceId = players[0].id;
+
+    // No games played
+    const aliceH2H = calculateHeadToHead(aliceId);
+
+    assertEquals(aliceH2H.length, 0, 'Should return empty array when no games played');
+}
+
+function testCalculateHeadToHeadSortedByGamesCount() {
+    addPlayerToState('Alice');
+    addPlayerToState('Bob');
+    addPlayerToState('Charlie');
+    addPlayerToState('Dave');
+    const aliceId = players[0].id;
+    const bobId = players[1].id;
+    const charlieId = players[2].id;
+    const daveId = players[3].id;
+
+    // Alice vs Bob: 5 games
+    for (let i = 0; i < 5; i++) {
+        games.push({ date: '2024-01-01', player1Id: aliceId, player2Id: bobId, score1: 6, score2: 4 });
+    }
+
+    // Alice vs Charlie: 3 games
+    for (let i = 0; i < 3; i++) {
+        games.push({ date: '2024-01-02', player1Id: aliceId, player2Id: charlieId, score1: 6, score2: 3 });
+    }
+
+    // Alice vs Dave: 10 games
+    for (let i = 0; i < 10; i++) {
+        games.push({ date: '2024-01-03', player1Id: aliceId, player2Id: daveId, score1: 6, score2: 2 });
+    }
+
+    const aliceH2H = calculateHeadToHead(aliceId);
+
+    assertEquals(aliceH2H.length, 3, 'Alice should have stats against 3 opponents');
+    assertEquals(aliceH2H[0].name, 'Dave', 'First should be Dave (10 games)');
+    assertEquals(aliceH2H[0].gamesAgainst, 10, 'Dave should have 10 games');
+    assertEquals(aliceH2H[1].name, 'Bob', 'Second should be Bob (5 games)');
+    assertEquals(aliceH2H[1].gamesAgainst, 5, 'Bob should have 5 games');
+    assertEquals(aliceH2H[2].name, 'Charlie', 'Third should be Charlie (3 games)');
+    assertEquals(aliceH2H[2].gamesAgainst, 3, 'Charlie should have 3 games');
 }
 
 // Export for Node.js, or auto-load message for browser

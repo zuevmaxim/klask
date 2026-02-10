@@ -510,8 +510,11 @@ function render() {
                     </tr>
                 </thead>
                 <tbody>
-                    ${stats.map(s => `
-                        <tr>
+                    ${stats.map(s => {
+                        const player = players.find(p => p.name === s.name);
+                        const playerId = player ? player.id : null;
+                        return `
+                        <tr onclick="showHeadToHeadPopup(${playerId})">
                             <td>${s.name}</td>
                             <td>${s.winPercent}%</td>
                             <td>${s.totalGames}</td>
@@ -519,7 +522,7 @@ function render() {
                             <td>${s.totalChampionDays}</td>
                             <td>${s.maxChampionStreak}</td>
                         </tr>
-                    `).join('')}
+                    `}).join('')}
                 </tbody>
             </table>
         `;
@@ -560,6 +563,59 @@ async function initializeApp() {
             showLoginScreen();
         }, remainingTime);
     }
+}
+
+/* ===============================
+   HEAD TO HEAD POPUP
+================================ */
+
+function showHeadToHeadPopup(playerId) {
+    const player = players.find(p => p.id === playerId);
+    if (!player) return;
+
+    const h2hStats = calculateHeadToHead(playerId);
+    const modal = document.getElementById('h2hModal');
+    const title = document.getElementById('h2hModalTitle');
+    const body = document.getElementById('h2hModalBody');
+
+    title.innerText = `${player.name}'s statistics`;
+
+    if (h2hStats.length === 0) {
+        body.innerHTML = '<p style="color: #111111; text-align: center;">No games played against other players yet.</p>';
+    } else {
+        body.innerHTML = `
+            <table class="h2h-table">
+                <thead>
+                    <tr>
+                        <th>Opponent</th>
+                        <th>Games</th>
+                        <th>Win Balance</th>
+                        <th>Avg Point Diff</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${h2hStats.map(s => `
+                        <tr>
+                            <td>${s.name}</td>
+                            <td>${s.gamesAgainst}</td>
+                            <td>${s.winBalance > 0 ? '+' : ''}${s.winBalance}</td>
+                            <td>${s.avgPointDiff > 0 ? '+' : ''}${s.avgPointDiff}</td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        `;
+    }
+
+    modal.classList.add('show');
+}
+
+function closeHeadToHeadPopup(event) {
+    // If event is passed, only close if clicking on the backdrop
+    if (event && event.target.id !== 'h2hModal') return;
+
+    const modal = document.getElementById('h2hModal');
+    modal.classList.remove('show');
 }
 
 /* ===============================
