@@ -661,10 +661,6 @@ li {
     border-bottom: none;
 }
 
-.h2h-table tbody tr:hover {
-    background: #D8C3A5;
-}
-
 .stats-table tbody tr {
     cursor: pointer;
 }
