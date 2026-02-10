@@ -636,6 +636,11 @@ li {
     transform: scale(0.97);
 }
 
+.h2h-table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+}
+
 .h2h-table {
     width: 100%;
     border-collapse: collapse;

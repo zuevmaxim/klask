@@ -586,26 +586,28 @@ function showHeadToHeadPopup(playerId) {
         body.innerHTML = '<p style="color: #111111; text-align: center;">No games played against other players yet.</p>';
     } else {
         body.innerHTML = `
-            <table class="h2h-table">
-                <thead>
-                    <tr>
-                        <th>Opponent</th>
-                        <th>Games</th>
-                        <th>Win Balance</th>
-                        <th>Avg Point Diff</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${h2hStats.map(s => `
+            <div class="h2h-table-wrapper">
+                <table class="h2h-table">
+                    <thead>
                         <tr>
-                            <td>${s.name}</td>
-                            <td>${s.gamesAgainst}</td>
-                            <td>${s.winBalance > 0 ? '+' : ''}${s.winBalance}</td>
-                            <td>${s.avgPointDiff > 0 ? '+' : ''}${s.avgPointDiff}</td>
+                            <th>Opponent</th>
+                            <th>Games</th>
+                            <th>Win Balance</th>
+                            <th>Avg Point Diff</th>
                         </tr>
-                    `).join('')}
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                        ${h2hStats.map(s => `
+                            <tr>
+                                <td>${s.name}</td>
+                                <td>${s.gamesAgainst}</td>
+                                <td>${s.winBalance > 0 ? '+' : ''}${s.winBalance}</td>
+                                <td>${s.avgPointDiff > 0 ? '+' : ''}${s.avgPointDiff}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            </div>
         `;
     }
 
