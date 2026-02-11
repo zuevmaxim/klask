@@ -44,14 +44,14 @@
     <div class="h2h-modal-content" onclick="event.stopPropagation()">
         <div class="h2h-modal-header">
             <h2 id="h2hModalTitle">Head to Head</h2>
-            <button class="h2h-close-btn" onclick="closeHeadToHeadPopup()">×</button>
+            <button class="h2h-close-btn circular-btn" onclick="closeHeadToHeadPopup()">×</button>
         </div>
         <div id="h2hModalBody"></div>
     </div>
 </div>
 
-<button id="addPlayerBtn" class="icon-btn add-player-btn" onclick="toggleAddPlayer()">+</button>
-<button id="logoutBtn" class="icon-btn logout-btn" onclick="handleLogout()">⎋</button>
+<button id="addPlayerBtn" class="icon-btn add-player-btn circular-btn" onclick="toggleAddPlayer()">+</button>
+<button id="logoutBtn" class="icon-btn logout-btn circular-btn" onclick="handleLogout()">⎋</button>
 
 <div id="addPlayerForm" class="add-player-form" style="display: none;">
     <input id="playerName" placeholder="Player name">
@@ -83,7 +83,7 @@
 <h2>👑 Champion</h2>
 <div class="champion-section">
     <div id="champion">—</div>
-    <button class="change-champion-btn" onclick="toggleChangeChampion()">✎</button>
+    <button class="change-champion-btn circular-btn" onclick="toggleChangeChampion()">✎</button>
 </div>
 
 <div id="changeChampionForm" class="add-player-form" style="display: none;">

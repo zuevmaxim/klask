@@ -1,6 +1,7 @@
-/* ===== COLOR VARIABLES ===== */
+/* ===== VARIABLES ===== */
 
 :root {
+    /* Colors */
     --color-blue-surface: #1F5FBF;
     --color-white: #FFFFFF;
     --color-black: #111111;
@@ -12,9 +13,17 @@
     --color-error: #B73939;
     --color-success: #2D8659;
 
+    /* Shadows */
     --shadow-sm: rgba(0, 0, 0, 0.4);
     --shadow-md: rgba(0, 0, 0, 0.5);
     --shadow-lg: rgba(0, 0, 0, 0.7);
+
+    /* Animation variables */
+    --by: 2vw;
+    --bx: 7.5vw;
+    --py: 3.5vw;
+    --vx: 5vw;
+    --px: 6vw;
 }
 
 /* ===== RESET / BASE ===== */
@@ -157,10 +166,8 @@ li {
 
 @media (max-width: 768px) {
     .table-wrapper {
-        margin-left: -16px;
-        margin-right: -16px;
-        padding-left: 16px;
-        padding-right: 16px;
+        margin-inline: -16px;
+        padding-inline: 16px;
         width: calc(100% + 32px);
     }
 }
@@ -226,18 +233,30 @@ li {
     width: 32px;
     height: 32px;
     min-width: 32px;
-    border-radius: 50%;
     font-size: 16px;
-    padding: 0;
-    margin: 0;
-
     background: var(--color-white);
     color: var(--color-black);
+}
 
+/* ===== UTILITY CLASSES ===== */
+
+.flex-center {
     display: flex;
     align-items: center;
     justify-content: center;
+}
+
+.circular-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    padding: 0;
+    margin: 0;
+    line-height: 1;
+    cursor: pointer;
     font-weight: 700;
+    border: none;
 }
 
 /* ===== ICON BUTTONS (unified) ===== */
@@ -247,15 +266,8 @@ li {
     top: 16px;
     width: 48px;
     height: 48px;
-    border-radius: 50%;
-    line-height: 1;
-    padding: 0;
     box-shadow: 0 4px 12px var(--shadow-sm);
     z-index: 100;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 700;
 }
 
 .add-player-btn {
@@ -288,28 +300,16 @@ li {
     width: 24px;
     height: 24px;
     min-width: 24px;
-    border-radius: 50%;
     font-size: 18px;
-    padding: 0;
-    margin: 0;
-
     background: var(--color-black);
     color: var(--color-white);
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    line-height: 1;
 }
 
 /* ===== LOADING SCREEN ===== */
 
 .loading-screen {
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
+    inset: 0;
     background: var(--color-wood);
     display: flex;
     flex-direction: column;
@@ -387,16 +387,6 @@ li {
     left: 6.5vw;
     z-index: 3;
     animation: moveBall 3s linear infinite;
-}
-
-/* ===== CSS VARIABLES ===== */
-
-:root {
-    --by: 2vw;
-    --bx: 7.5vw;
-    --py: 3.5vw;
-    --vx: 5vw;
-    --px: 6vw;
 }
 
 @keyframes movePiece1 {
@@ -477,10 +467,7 @@ li {
 
 .login-screen {
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
+    inset: 0;
     background: var(--color-blue-surface);
     display: flex;
     align-items: center;
@@ -557,14 +544,6 @@ li {
 
 /* ===== MOBILE TWEAKS ===== */
 
-@media (max-width: 400px) {
-    .score-circle {
-        width: 32px;
-        height: 32px;
-        font-size: 14px;
-    }
-}
-
 @media (max-width: 768px) {
     .data-table {
         font-size: 12px;
@@ -593,15 +572,20 @@ li {
     }
 }
 
+@media (max-width: 400px) {
+    .score-circle {
+        width: 32px;
+        height: 32px;
+        font-size: 14px;
+    }
+}
+
 /* ===== HEAD TO HEAD POPUP ===== */
 
 .h2h-modal {
     display: none;
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
+    inset: 0;
     background: var(--shadow-lg);
     z-index: 1500;
     align-items: center;
@@ -642,22 +626,9 @@ li {
     width: 32px;
     height: 32px;
     min-width: 32px;
-    border-radius: 50%;
     font-size: 20px;
-    padding: 0;
-    margin: 0;
     background: var(--color-black);
     color: var(--color-white);
-    border: none;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 700;
-}
-
-.h2h-close-btn:active {
-    transform: scale(0.97);
 }
 
 /* H2H table uses unified .data-table styles */
@@ -679,10 +650,8 @@ li {
     }
 
     .h2h-modal-content .table-wrapper {
-        margin-left: -16px;
-        margin-right: -16px;
-        padding-left: 16px;
-        padding-right: 16px;
+        margin-inline: -16px;
+        padding-inline: 16px;
         width: calc(100% + 32px);
     }
 }

@@ -449,7 +449,7 @@ function renderGameHistory() {
 
             return `<li class="history-item">
                 <span>${dateStr} ${timeStr} - ${winnerName} ${winnerScore}:${loserScore} ${loserName}</span>
-                <button class="remove-event-btn" onclick="removeHistoryEvent('game', ${event.originalIndex})">×</button>
+                <button class="remove-event-btn circular-btn" onclick="removeHistoryEvent('game', ${event.originalIndex})">×</button>
             </li>`;
         } else {
             // Championship event
@@ -486,7 +486,7 @@ function renderGameHistory() {
 
             return `<li class="history-item">
                 <span><strong>${dateStr} ${timeStr} - 👑 ${newName} became champion ${reason}</strong> (was: ${prevName}${durationText})</span>
-                <button class="remove-event-btn" onclick="removeHistoryEvent('championship', ${event.originalIndex})">×</button>
+                <button class="remove-event-btn circular-btn" onclick="removeHistoryEvent('championship', ${event.originalIndex})">×</button>
             </li>`;
         }
     }).join('');
