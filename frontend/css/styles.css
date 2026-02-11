@@ -117,7 +117,7 @@ button:disabled {
     border-color: #ffa500;
 }
 
-/* ===== STATS ===== */
+/* ===== STATS / TABLES ===== */
 
 ul {
     padding-left: 18px;
@@ -130,7 +130,8 @@ li {
     color: #FFFFFF;
 }
 
-.stats-table-wrapper {
+/* Unified table wrapper for all data tables */
+.table-wrapper {
     width: 100%;
     overflow-x: auto;
     margin: 8px 0;
@@ -138,7 +139,7 @@ li {
 }
 
 @media (max-width: 768px) {
-    .stats-table-wrapper {
+    .table-wrapper {
         margin-left: -16px;
         margin-right: -16px;
         padding-left: 16px;
@@ -147,7 +148,8 @@ li {
     }
 }
 
-.stats-table {
+/* Unified data table styles (stats, h2h) */
+.data-table {
     width: 100%;
     border-collapse: collapse;
     background: #FFFFFF;
@@ -155,11 +157,11 @@ li {
     overflow: hidden;
 }
 
-.stats-table thead {
+.data-table thead {
     background: #111111;
 }
 
-.stats-table th {
+.data-table th {
     padding: 10px;
     text-align: left;
     font-weight: 700;
@@ -167,18 +169,22 @@ li {
     border-bottom: 2px solid #ffa500;
 }
 
-.stats-table td {
+.data-table td {
     padding: 10px;
     color: #111111;
     border-bottom: 1px solid #D8C3A5;
 }
 
-.stats-table tbody tr:last-child td {
+.data-table tbody tr:last-child td {
     border-bottom: none;
 }
 
-.stats-table tbody tr:hover {
+.data-table tbody tr:hover {
     background: #D8C3A5;
+}
+
+.data-table tbody tr {
+    cursor: pointer;
 }
 
 /* ===== CHAMPION ===== */
@@ -217,25 +223,29 @@ li {
     font-weight: 700;
 }
 
-/* ===== ADD PLAYER BUTTON ===== */
+/* ===== ICON BUTTONS (unified) ===== */
 
-.add-player-btn {
+.icon-btn {
     position: fixed;
     top: 16px;
-    right: 16px;
-
     width: 48px;
     height: 48px;
     border-radius: 50%;
-    font-size: 28px;
     line-height: 1;
     padding: 0;
-
-    background: #ffa500;
-    color: #111111;
-
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
     z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+}
+
+.add-player-btn {
+    right: 16px;
+    font-size: 28px;
+    background: #ffa500;
+    color: #111111;
 }
 
 .add-player-form {
@@ -489,22 +499,10 @@ li {
 /* ===== LOGOUT BUTTON ===== */
 
 .logout-btn {
-    position: fixed;
-    top: 16px;
     right: 72px;
-
-    width: 48px;
-    height: 48px;
-    border-radius: 50%;
     font-size: 24px;
-    line-height: 1;
-    padding: 0;
-
     background: #111111;
     color: #FFFFFF;
-
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
-    z-index: 100;
 }
 
 /* ===== NOTIFICATION ===== */
@@ -540,7 +538,7 @@ li {
     background: #2D8659;
 }
 
-/* ===== SMALL MOBILE TWEAKS ===== */
+/* ===== MOBILE TWEAKS ===== */
 
 @media (max-width: 400px) {
     .score-circle {
@@ -550,30 +548,28 @@ li {
     }
 }
 
-/* ===== MOBILE STATS TABLE ===== */
-
 @media (max-width: 768px) {
-    .stats-table {
+    .data-table {
         font-size: 12px;
     }
 
-    .stats-table th,
-    .stats-table td {
+    .data-table th,
+    .data-table td {
         padding: 6px 4px;
         text-align: center;
     }
 }
 
 @media (max-width: 480px) {
-    .stats-table {
+    .data-table {
         font-size: 11px;
         display: table;
         min-width: 100%;
         table-layout: auto;
     }
 
-    .stats-table th,
-    .stats-table td {
+    .data-table th,
+    .data-table td {
         padding: 6px 3px;
         text-align: center;
         white-space: nowrap;
@@ -647,92 +643,29 @@ li {
     transform: scale(0.97);
 }
 
-.h2h-table-wrapper {
-    width: 100%;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
+/* H2H table uses unified .data-table styles */
+.h2h-table th {
+    font-size: 13px;
+}
+
+.h2h-table tbody tr {
+    cursor: default;
+}
+
+.h2h-table tbody tr:hover {
+    background: transparent;
 }
 
 @media (max-width: 768px) {
-    .h2h-table-wrapper {
-        margin-left: -24px;
-        margin-right: -24px;
-        padding-left: 24px;
-        padding-right: 24px;
-        width: calc(100% + 48px);
+    .h2h-modal-content {
+        padding: 16px;
     }
-}
 
-@media (max-width: 480px) {
-    .h2h-table-wrapper {
+    .h2h-modal-content .table-wrapper {
         margin-left: -16px;
         margin-right: -16px;
         padding-left: 16px;
         padding-right: 16px;
         width: calc(100% + 32px);
-    }
-}
-
-.h2h-table {
-    width: 100%;
-    border-collapse: collapse;
-    background: #FFFFFF;
-    border-radius: 8px;
-    overflow: hidden;
-}
-
-.h2h-table thead {
-    background: #111111;
-}
-
-.h2h-table th {
-    padding: 10px 8px;
-    text-align: left;
-    font-weight: 700;
-    color: #FFFFFF;
-    border-bottom: 2px solid #ffa500;
-    font-size: 13px;
-}
-
-.h2h-table td {
-    padding: 10px 8px;
-    color: #111111;
-    border-bottom: 1px solid #D8C3A5;
-}
-
-.h2h-table tbody tr:last-child td {
-    border-bottom: none;
-}
-
-.stats-table tbody tr {
-    cursor: pointer;
-}
-
-@media (max-width: 768px) {
-    .h2h-table {
-        font-size: 12px;
-    }
-
-    .h2h-table th,
-    .h2h-table td {
-        padding: 8px 4px;
-    }
-
-    .h2h-modal-content {
-        padding: 16px;
-    }
-}
-
-@media (max-width: 480px) {
-    .h2h-table {
-        font-size: 11px;
-        display: block;
-        overflow-x: auto;
-    }
-
-    .h2h-table th,
-    .h2h-table td {
-        padding: 6px 3px;
-        white-space: nowrap;
     }
 }

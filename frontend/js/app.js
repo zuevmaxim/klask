@@ -14,6 +14,60 @@ let score1 = null;
 let score2 = null;
 
 /* ===============================
+   UI UTILITIES
+================================ */
+
+// Create a data table with headers and rows
+function createTable(headers, rows, cssClass = 'data-table') {
+    const headerCells = headers.map(h => `<th>${h}</th>`).join('');
+    const bodyRows = rows.map(row => {
+        const cells = row.cells.map(c => `<td>${c}</td>`).join('');
+        const clickAttr = row.onClick ? `onclick="${row.onClick}"` : '';
+        const cursorStyle = row.onClick ? 'cursor: pointer;' : '';
+        return `<tr ${clickAttr} style="${cursorStyle}">${cells}</tr>`;
+    }).join('');
+
+    return `
+        <div class="table-wrapper">
+            <table class="${cssClass}">
+                <thead>
+                    <tr>${headerCells}</tr>
+                </thead>
+                <tbody>
+                    ${bodyRows}
+                </tbody>
+            </table>
+        </div>
+    `;
+}
+
+// Toggle visibility of an element
+function toggleElement(elementId) {
+    const el = document.getElementById(elementId);
+    const isVisible = el.style.display !== 'none';
+    el.style.display = isVisible ? 'none' : 'block';
+    return !isVisible; // Return new visibility state
+}
+
+// Show/hide modal
+function showModal(modalId) {
+    document.getElementById(modalId).classList.add('show');
+}
+
+function hideModal(modalId) {
+    document.getElementById(modalId).classList.remove('show');
+}
+
+// Create circular button elements
+function createCircleButton(value, onClick) {
+    const el = document.createElement('div');
+    el.className = 'score-circle';
+    el.innerText = value;
+    el.onclick = onClick;
+    return el;
+}
+
+/* ===============================
    API
 ================================ */
 
@@ -158,11 +212,8 @@ function saveState(cause) {
 ================================ */
 
 function toggleAddPlayer() {
-    const form = document.getElementById('addPlayerForm');
-    const isVisible = form.style.display !== 'none';
-    form.style.display = isVisible ? 'none' : 'block';
-
-    if (!isVisible) {
+    const isNowVisible = toggleElement('addPlayerForm');
+    if (isNowVisible) {
         document.getElementById('playerName').focus();
     }
 }
@@ -185,49 +236,40 @@ function addPlayer() {
 ================================ */
 
 function renderScoreCircles() {
-    const s1 = document.getElementById('score1');
-    const s2 = document.getElementById('score2');
+    renderScoreRow('score1', 1);
+    renderScoreRow('score2', 2);
+}
 
-    s1.innerHTML = '';
-    s2.innerHTML = '';
+function renderScoreRow(containerId, player) {
+    const container = document.getElementById(containerId);
+    container.innerHTML = '';
 
     for (let i = 0; i <= 6; i++) {
-        const c1 = createScoreCircle(i, 1);
-        const c2 = createScoreCircle(i, 2);
-
-        s1.appendChild(c1);
-        s2.appendChild(c2);
+        const circle = createCircleButton(i, () => handleScoreSelect(i, player));
+        container.appendChild(circle);
     }
 }
 
-function createScoreCircle(value, player) {
-    const el = document.createElement('div');
-    el.className = 'score-circle';
-    el.innerText = value;
+function handleScoreSelect(value, player) {
+    if (player === 1) {
+        score1 = value;
+        updateActive('score1', value);
 
-    el.onclick = () => {
-        if (player === 1) {
-            score1 = value;
-            updateActive('score1', value);
-
-            // If score is less than 6, set other player's score to 6
-            if (value < 6 && score2 !== 6) {
-                score2 = 6;
-                updateActive('score2', 6);
-            }
-        } else {
-            score2 = value;
-            updateActive('score2', value);
-
-            // If score is less than 6, set other player's score to 6
-            if (value < 6 && score1 !== 6) {
-                score1 = 6;
-                updateActive('score1', 6);
-            }
+        // If score is less than 6, set other player's score to 6
+        if (value < 6 && score2 !== 6) {
+            score2 = 6;
+            updateActive('score2', 6);
         }
-    };
+    } else {
+        score2 = value;
+        updateActive('score2', value);
 
-    return el;
+        // If score is less than 6, set other player's score to 6
+        if (value < 6 && score1 !== 6) {
+            score1 = 6;
+            updateActive('score1', 6);
+        }
+    }
 }
 
 function updateActive(containerId, value) {
@@ -300,11 +342,8 @@ function addMatch() {
 ================================ */
 
 function toggleChangeChampion() {
-    const form = document.getElementById('changeChampionForm');
-    const isVisible = form.style.display !== 'none';
-    form.style.display = isVisible ? 'none' : 'block';
-
-    if (!isVisible) {
+    const isNowVisible = toggleElement('changeChampionForm');
+    if (isNowVisible) {
         renderChampionSelect();
     }
 }
@@ -497,37 +536,17 @@ function render() {
     if (stats.length === 0) {
         document.getElementById('stats').innerHTML = '<p>No statistics yet</p>';
     } else {
-        document.getElementById('stats').innerHTML = `
-            <div class="stats-table-wrapper">
-                <table class="stats-table">
-                    <thead>
-                        <tr>
-                            <th>Player</th>
-                            <th>Win %</th>
-                            <th>Games</th>
-                            <th>Points %</th>
-                            <th>Champion Days</th>
-                            <th>Max Streak</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${stats.map(s => {
-                            const player = players.find(p => p.name === s.name);
-                            const playerId = player ? player.id : null;
-                            return `
-                            <tr onclick="showHeadToHeadPopup(${playerId})">
-                                <td>${s.name}</td>
-                                <td>${s.winPercent}%</td>
-                                <td>${s.totalGames}</td>
-                                <td>${s.pointPercent}%</td>
-                                <td>${s.totalChampionDays}</td>
-                                <td>${s.maxChampionStreak}</td>
-                            </tr>
-                        `}).join('')}
-                    </tbody>
-                </table>
-            </div>
-        `;
+        const headers = ['Player', 'Win %', 'Games', 'Points %', 'Champion Days', 'Max Streak'];
+        const rows = stats.map(s => {
+            const player = players.find(p => p.name === s.name);
+            const playerId = player ? player.id : null;
+            return {
+                cells: [s.name, `${s.winPercent}%`, s.totalGames, `${s.pointPercent}%`, s.totalChampionDays, s.maxChampionStreak],
+                onClick: `showHeadToHeadPopup(${playerId})`
+            };
+        });
+
+        document.getElementById('stats').innerHTML = createTable(headers, rows, 'data-table');
     }
 
     const champ = players.find(p => p.id === championship.championId);
@@ -584,7 +603,6 @@ function showHeadToHeadPopup(playerId) {
     if (!player) return;
 
     const h2hStats = calculateHeadToHead(playerId);
-    const modal = document.getElementById('h2hModal');
     const title = document.getElementById('h2hModalTitle');
     const body = document.getElementById('h2hModalBody');
 
@@ -593,41 +611,26 @@ function showHeadToHeadPopup(playerId) {
     if (h2hStats.length === 0) {
         body.innerHTML = '<p style="color: #111111; text-align: center;">No games played against other players yet.</p>';
     } else {
-        body.innerHTML = `
-            <div class="h2h-table-wrapper">
-                <table class="h2h-table">
-                    <thead>
-                        <tr>
-                            <th>Opponent</th>
-                            <th>Games</th>
-                            <th>Win Balance</th>
-                            <th>Avg Point Diff</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${h2hStats.map(s => `
-                            <tr>
-                                <td>${s.name}</td>
-                                <td>${s.gamesAgainst}</td>
-                                <td>${s.winBalance > 0 ? '+' : ''}${s.winBalance}</td>
-                                <td>${s.avgPointDiff > 0 ? '+' : ''}${s.avgPointDiff}</td>
-                            </tr>
-                        `).join('')}
-                    </tbody>
-                </table>
-            </div>
-        `;
+        const headers = ['Opponent', 'Games', 'Win Balance', 'Avg Point Diff'];
+        const rows = h2hStats.map(s => ({
+            cells: [
+                s.name,
+                s.gamesAgainst,
+                `${s.winBalance > 0 ? '+' : ''}${s.winBalance}`,
+                `${s.avgPointDiff > 0 ? '+' : ''}${s.avgPointDiff}`
+            ]
+        }));
+
+        body.innerHTML = createTable(headers, rows, 'data-table h2h-table');
     }
 
-    modal.classList.add('show');
+    showModal('h2hModal');
 }
 
 function closeHeadToHeadPopup(event) {
     // If event is passed, only close if clicking on the backdrop
     if (event && event.target.id !== 'h2hModal') return;
-
-    const modal = document.getElementById('h2hModal');
-    modal.classList.remove('show');
+    hideModal('h2hModal');
 }
 
 /* ===============================
