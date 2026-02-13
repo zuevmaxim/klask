@@ -785,6 +785,18 @@ li {
         height: 32px;
         font-size: 14px;
     }
+
+    .history-item {
+        padding: 8px 10px;
+        gap: 8px;
+        font-size: 13px;
+    }
+
+    .remove-event-btn {
+        font-size: 18px;
+        padding: 8px;
+        min-width: 32px;
+    }
 }
 
 /* ===== HEAD TO HEAD POPUP ===== */
