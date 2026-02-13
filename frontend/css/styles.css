@@ -737,28 +737,44 @@ li {
 
 @media (max-width: 768px) {
     .data-table {
-        font-size: 12px;
+        font-size: 11px;
     }
 
-    .data-table th,
+    .data-table th {
+        padding: 6px 4px;
+        text-align: center;
+        font-size: 11px;
+        white-space: normal;
+        line-height: 1.2;
+    }
+
     .data-table td {
         padding: 6px 4px;
         text-align: center;
+        font-size: 12px;
     }
 }
 
 @media (max-width: 480px) {
     .data-table {
-        font-size: 11px;
+        font-size: 10px;
         display: table;
         min-width: 100%;
         table-layout: auto;
     }
 
-    .data-table th,
-    .data-table td {
-        padding: 6px 3px;
+    .data-table th {
+        padding: 5px 2px;
         text-align: center;
+        font-size: 10px;
+        white-space: normal;
+        line-height: 1.2;
+    }
+
+    .data-table td {
+        padding: 5px 2px;
+        text-align: center;
+        font-size: 11px;
         white-space: nowrap;
     }
 }
