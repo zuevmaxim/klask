@@ -4,8 +4,8 @@
   "private": true,
   "main": "api/server.ts",
   "scripts": {
-    "test": "tsx frontend/tests/test-node.ts && tsx frontend/klask/src/klask4/solo-logic.test.ts",
-    "test:coverage": "c8 --reporter=text --reporter=lcov --check-coverage --include=frontend/klask/src/klask/game-logic.ts --branches 100 --functions 100 --lines 100 --statements 100 tsx frontend/tests/test-node.ts",
+    "test": "tsx frontend/tests/test-node.ts && tsx frontend/klask/src/klask4/game-logic.test.ts && tsx frontend/klask/src/klask4/solo-logic.test.ts && tsx --test api/state-operations.test.ts",
+    "test:coverage": "c8 --reporter=text --reporter=lcov --check-coverage --include=frontend/klask/src/klask/game-logic.ts --branches 100 --functions 100 --lines 100 --statements 100 tsx frontend/tests/test-node.ts && c8 --reporter=text --check-coverage --include=api/state-operations.ts --branches 100 --functions 100 --lines 100 --statements 100 tsx --test api/state-operations.test.ts",
     "start": "tsx api/server.ts"
   },
   "dependencies": {

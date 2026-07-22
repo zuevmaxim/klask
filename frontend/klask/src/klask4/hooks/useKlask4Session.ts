@@ -10,7 +10,7 @@ export default function useKlask4Session(resolveScreen) {
     loginScreen: 'login',
   });
 
-  const state = session.state || { players: [], games: [], activeGame: null, extraFields: {} };
+  const state = session.state || { players: [], games: [], activeGame: null, extraFields: {}, stats: null };
 
   return {
     ...session,
@@ -22,5 +22,6 @@ export default function useKlask4Session(resolveScreen) {
     setActiveGame: (activeGame) => session.setState((current) => ({ ...(current || state), activeGame })),
     extraFields: state.extraFields || {},
     setExtraFields: (extraFields) => session.setState((current) => ({ ...(current || state), extraFields })),
+    stats: state.stats,
   };
 }

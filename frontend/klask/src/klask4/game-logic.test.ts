@@ -421,16 +421,19 @@ console.log('\n--- State Serialization ---');
 test('buildStateForSave creates correct shape', () => {
   const state = buildStateForSave([{ id: 1, name: 'A' }], [], null);
   assertEquals(state.players.length, 1);
-  assertEquals(state.games.length, 0);
+  assertEquals(state.games, undefined);
   assertEquals(state.activeGame, null);
 });
 
 test('loadStateFromData parses correctly', () => {
-  const data = { players: [{ id: 1, name: 'A' }], games: [{ id: 1 }], activeGame: { x: 1 } };
+  const data = { players: [{ id: 1, name: 'A' }], games: [{ id: 1 }], activeGame: { x: 1 }, stats: { playerStats: [] }, theme: 'dark' };
   const state = loadStateFromData(data);
   assertEquals(state.players.length, 1);
   assertEquals(state.games.length, 1);
   assert(state.activeGame !== null, 'activeGame should be set');
+  assertEquals(state.stats.playerStats.length, 0);
+  assertEquals(state.extraFields.theme, 'dark');
+  assertEquals(state.extraFields.stats, undefined);
 });
 
 test('loadStateFromData handles missing fields', () => {

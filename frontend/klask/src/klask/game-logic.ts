@@ -42,11 +42,11 @@ export function calculateChampionshipDuration(championId) {
 }
 
 // Calculate champion days for a specific championship period
-export function calculateChampionDaysForPeriod(championId, startDate, endDate) {
+export function calculateChampionDaysForPeriod(championId, startDate, endDate, gamesList = games) {
     const defendedDays = new Set();
     const endDayKey = endDate ? new Date(endDate).toDateString() : null;
 
-    games.forEach(game => {
+    gamesList.forEach(game => {
         const gameDate = new Date(game.date);
         const gameDayKey = new Date(gameDate).toDateString();
 
@@ -130,12 +130,27 @@ export function applyEloRatingSnapshot(game, ratings, gamesPlayed) {
     return true;
 }
 
-export function createInitialEloState() {
+export function calculateEloRatings(state = { players, games }) {
+    const { ratings, gamesPlayed } = createInitialEloState(state.players);
+
+    /* c8 ignore next -- V8 reports the for-loop increment as a synthetic branch. */
+    for (let i = 0; i < state.games.length; i++) {
+        applyEloRatingSnapshot(state.games[i], ratings, gamesPlayed);
+    }
+
+    return { ratings, gamesPlayed };
+}
+
+export function enrichGamesWithEloRatings(state = { players, games }) {
+    calculateEloRatings(state);
+}
+
+export function createInitialEloState(playersList = players) {
     const ratings = {};
     const gamesPlayed = {};
 
-    for (let i = 0; i < players.length; i++) {
-        const p = players[i];
+    for (let i = 0; i < playersList.length; i++) {
+        const p = playersList[i];
         ratings[p.id] = ELO_INITIAL_RATING;
         gamesPlayed[p.id] = 0;
     }
@@ -143,35 +158,20 @@ export function createInitialEloState() {
     return { ratings, gamesPlayed };
 }
 
-export function calculateEloRatings(gamesToRate = games) {
-    const { ratings, gamesPlayed } = createInitialEloState();
+export function championChangedToday(today, history = championshipHistory) {
+    if (history.length <= 0) return false;
 
-    /* c8 ignore next -- V8 reports the for-loop increment as a synthetic branch. */
-    for (let i = 0; i < gamesToRate.length; i++) {
-        applyEloRatingSnapshot(gamesToRate[i], ratings, gamesPlayed);
-    }
-
-    return { ratings, gamesPlayed };
-}
-
-export function enrichGamesWithEloRatings() {
-    calculateEloRatings(games);
-}
-
-export function championChangedToday(today) {
-    if (championshipHistory.length <= 0) return false;
-
-    const lastEvent = championshipHistory[championshipHistory.length - 1];
+    const lastEvent = history[history.length - 1];
     const lastEventDate = new Date(lastEvent.date).toDateString();
 
     return lastEventDate === today;
 
 }
 
-export function countTodayGamesBetween(playerAId, playerBId, today) {
+export function countTodayGamesBetween(playerAId, playerBId, today, gamesList = games) {
     let count = 0;
-    for (let i = games.length - 1; i >= 0; i--) {
-        const g = games[i];
+    for (let i = gamesList.length - 1; i >= 0; i--) {
+        const g = gamesList[i];
         const gDate = new Date(g.date).toDateString();
         if (gDate !== today) break;
 
@@ -182,65 +182,64 @@ export function countTodayGamesBetween(playerAId, playerBId, today) {
     return count;
 }
 
-export function tryConvertCandidateOnChampionWin(winnerId, previousChampionId, now, championAlreadyChangedToday) {
-    if (!championship.candidate || championship.candidate.playerId !== winnerId) return false;
+export function tryConvertCandidateOnChampionWin(winnerId, previousChampionId, now, championAlreadyChangedToday, state = { championship, championshipHistory }) {
+    if (!state.championship.candidate || state.championship.candidate.playerId !== winnerId) return false;
     if (championAlreadyChangedToday) return false;
 
-    championshipHistory.push({
+    state.championshipHistory.push({
         date: now,
         newChampionId: winnerId,
         previousChampionId,
         reason: 'game'
     });
 
-    championship.championId = winnerId;
-    championship.candidate = null;
+    state.championship.championId = winnerId;
+    state.championship.candidate = null;
     return true;
 }
 
-export function maybeStartCandidateWindow(winnerId, championId, today) {
-    if (championship.candidate) return false;
+export function maybeStartCandidateWindow(winnerId, championId, today, state = { championship, games }) {
+    if (state.championship.candidate) return false;
 
-    const gamesVsChampionToday = countTodayGamesBetween(winnerId, championId, today);
+    const gamesVsChampionToday = countTodayGamesBetween(winnerId, championId, today, state.games);
     const gamesVsChampionBeforeThis = Math.max(0, gamesVsChampionToday - 1);
     if (gamesVsChampionBeforeThis !== 0) return false;
 
-    championship.candidate = {
+    state.championship.candidate = {
         playerId: winnerId,
         remainingGames: 2
     };
     return true;
 }
 
-export function consumeCandidateWindowIfNeeded(p1Id, p2Id, candidateAtStartId, candidateStartedThisGame, championChanged) {
+export function consumeCandidateWindowIfNeeded(p1Id, p2Id, candidateAtStartId, candidateStartedThisGame, championChanged, championshipState = championship) {
     if (championChanged || !candidateAtStartId || candidateStartedThisGame) return;
-    if (!championship.candidate || championship.candidate.playerId !== candidateAtStartId) return;
+    if (!championshipState.candidate || championshipState.candidate.playerId !== candidateAtStartId) return;
 
     const candidatePlayed = p1Id === candidateAtStartId || p2Id === candidateAtStartId;
-    const gameVsChampion = p1Id === championship.championId || p2Id === championship.championId;
+    const gameVsChampion = p1Id === championshipState.championId || p2Id === championshipState.championId;
     if (!candidatePlayed || !gameVsChampion) return;
 
-    championship.candidate.remainingGames -= 1;
-    if (championship.candidate.remainingGames <= 0) {
-        championship.candidate = null;
+    championshipState.candidate.remainingGames -= 1;
+    if (championshipState.candidate.remainingGames <= 0) {
+        championshipState.candidate = null;
     }
 }
 
-export function processMatchResult(p1Id, p2Id, score1, score2) {
+export function processMatchResult(p1Id, p2Id, score1, score2, state = { players, championship, games, championshipHistory }, currentDate = new Date()) {
     const winnerId = score1 > score2 ? p1Id : p2Id;
     const loserId = score1 > score2 ? p2Id : p1Id;
 
-    const eloBefore = calculateEloRatings();
+    const eloBefore = calculateEloRatings(state);
 
-    const currentDate = new Date();
     const today = currentDate.toDateString();
     const now = currentDate.toISOString();
 
-    const candidateAtStartId = championship.candidate ? championship.candidate.playerId : null;
+    const candidateAtStartId = state.championship.candidate ? state.championship.candidate.playerId : null;
 
-    const previousGameDay = games.length ? new Date(games[games.length - 1].date).toDateString() : null;
+    const previousGameDay = state.games.length ? new Date(state.games[state.games.length - 1].date).toDateString() : null;
     if (previousGameDay && previousGameDay !== today) {
-        championship.candidate = null;
+        state.championship.candidate = null;
     }
 
     const game = {
@@ -251,24 +250,24 @@ export function processMatchResult(p1Id, p2Id, score1, score2) {
         score2
     };
     applyEloRatingSnapshot(game, eloBefore.ratings, eloBefore.gamesPlayed);
-    games.push(game);
+    state.games.push(game);
 
-    const championAlreadyChangedToday = championChangedToday(today);
+    const championAlreadyChangedToday = championChangedToday(today, state.championshipHistory);
     let championChanged = false;
     let candidateStartedThisGame = false;
 
-    if (!championship.championId) {
-        championship.championId = winnerId;
-    } else if (championship.championId === loserId) {
-        championChanged = tryConvertCandidateOnChampionWin(winnerId, loserId, now, championAlreadyChangedToday);
+    if (!state.championship.championId) {
+        state.championship.championId = winnerId;
+    } else if (state.championship.championId === loserId) {
+        championChanged = tryConvertCandidateOnChampionWin(winnerId, loserId, now, championAlreadyChangedToday, state);
         if (!championChanged) {
-            candidateStartedThisGame = maybeStartCandidateWindow(winnerId, loserId, today);
+            candidateStartedThisGame = maybeStartCandidateWindow(winnerId, loserId, today, state);
         }
     }
 
-    consumeCandidateWindowIfNeeded(p1Id, p2Id, candidateAtStartId, candidateStartedThisGame, championChanged);
+    consumeCandidateWindowIfNeeded(p1Id, p2Id, candidateAtStartId, candidateStartedThisGame, championChanged, state.championship);
 
-    return {championChanged};
+    return { championChanged, game };
 }
 
 export function setChampion(newChampionId) {
@@ -293,10 +292,10 @@ export function removeChampionshipEventFromHistory(index) {
     championshipHistory.splice(index, 1);
 }
 
-export function calculateStats() {
-    const elo = calculateEloRatings();
+export function calculateStats(state = { players, games, championshipHistory }) {
+    const elo = calculateEloRatings(state);
     const stats = {};
-    players.forEach(p => {
+    state.players.forEach(p => {
         stats[p.id] = {
             name: p.name,
             rating: elo.ratings[p.id],
@@ -309,7 +308,7 @@ export function calculateStats() {
         };
     });
 
-    games.forEach(game => {
+    state.games.forEach(game => {
         const winnerId = game.score1 > game.score2 ? game.player1Id : game.player2Id;
         const loserId = game.score1 > game.score2 ? game.player2Id : game.player1Id;
         const winnerScore = Math.max(game.score1, game.score2);
@@ -329,17 +328,17 @@ export function calculateStats() {
 
     // Calculate championship days for each player
     // Only count days when the champion played at least one game
-    championshipHistory.forEach((event, index) => {
+    state.championshipHistory.forEach((event, index) => {
         const championId = event.newChampionId;
         if (!championId || !stats[championId]) return;
 
         const startDate = new Date(event.date);
 
         // Find when this championship ended (next championship event)
-        const nextEvent = championshipHistory[index + 1];
+        const nextEvent = state.championshipHistory[index + 1];
         const endDate = nextEvent ? new Date(nextEvent.date) : new Date();
 
-        const days = calculateChampionDaysForPeriod(championId, startDate, endDate);
+        const days = calculateChampionDaysForPeriod(championId, startDate, endDate, state.games);
 
         stats[championId].totalChampionDays += days;
         if (days > stats[championId].maxChampionStreak) {
@@ -389,16 +388,17 @@ export function getStateForSave() {
         championship: {
             ...championship
         },
-        games,
+        // We don't include games here to avoid 413 Content Too Large
+        // The server will preserve existing games if they are missing in POST
         championshipHistory
     };
 }
 
-export function calculateHeadToHead(playerId) {
+export function calculateHeadToHead(playerId, state = { players, games }) {
     const opponentStats = {};
 
     // Initialize stats for all other players
-    players.forEach(p => {
+    state.players.forEach(p => {
         if (p.id !== playerId) {
             opponentStats[p.id] = {
                 name: p.name,
@@ -412,7 +412,7 @@ export function calculateHeadToHead(playerId) {
     });
 
     // Calculate head-to-head stats from games
-    games.forEach(game => {
+    state.games.forEach(game => {
         let opponentId = null;
         let playerScore = 0;
         let opponentScore = 0;

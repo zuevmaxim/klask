@@ -4,6 +4,7 @@
     "lib": ["ES2022"],
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
+    "allowImportingTsExtensions": true,
     "types": ["node"],
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,

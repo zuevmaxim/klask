@@ -1,6 +1,6 @@
 // @ts-nocheck
 import React, { useCallback } from 'react';
-import { saveState } from './api';
+import { saveState, loadMatches, saveMatch } from './api';
 import { addPlayer, createGame, submitRoundScore, buildStateForSave } from './game-logic';
 import { LoginScreen } from '../shared/AppShared';
 import MainScreen from './components/MainScreen';
@@ -33,13 +33,49 @@ export default function App() {
     setSaving,
     handleLogin,
     handleLogout,
+    stats,
   } = useKlask4Session(resolveTeamScreen);
+
+  const [matches, setMatches] = React.useState([]);
+  const [matchesPage, setMatchesPage] = React.useState(0);
+  const [hasMoreMatches, setHasMoreMatches] = React.useState(true);
+  const [loadingMatches, setLoadingMatches] = React.useState(false);
+  const [serverStats, setServerStats] = React.useState(null);
+
+  React.useEffect(() => {
+    if (stats) setServerStats(stats);
+  }, [stats]);
+
+  const loadMoreMatches = useCallback(async (pageNum) => {
+    setLoadingMatches(true);
+    try {
+      const data = await loadMatches(pageNum, 100);
+      setHasMoreMatches((pageNum + 1) * data.limit < data.total);
+      if (pageNum === 0) {
+        setMatches(data.matches);
+      } else {
+        setMatches(prev => [...prev, ...data.matches]);
+      }
+      setMatchesPage(pageNum);
+    } catch (err) {
+      console.error('Failed to load matches', err);
+    } finally {
+      setLoadingMatches(false);
+    }
+  }, []);
+
+  React.useEffect(() => {
+    if (screen === 'main') {
+      loadMoreMatches(0);
+    }
+  }, [screen, loadMoreMatches]);
 
   const persist = useCallback(async (newPlayers, newGames, newActiveGame, cause) => {
     setSaving(true);
     try {
       const state = buildStateForSave(newPlayers, newGames, newActiveGame, extraFields);
-      await saveState(state, cause);
+      const result = await saveState(state, cause);
+      if (result.stats) setServerStats(result.stats);
     } catch (err) {
       setError(err.message);
       if (err.message === 'Unauthorized') {
@@ -105,11 +141,17 @@ export default function App() {
         score2: r.score2,
       })),
     };
-    const newGames = [...games, completedGame];
-    setGames(newGames);
-    setActiveGame(null);
-    setScreen('main');
-    await persist(players, newGames, null, 'Complete game');
+    setSaving(true);
+    try {
+      const result = await saveMatch(completedGame, 'Complete game');
+      setServerStats(result.stats);
+      setActiveGame(null);
+      setScreen('main');
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setSaving(false);
+    }
   }
 
   if (screen === 'loading') {
@@ -137,9 +179,13 @@ export default function App() {
       {screen === 'main' && (
         <MainScreen
           players={players}
-          games={games}
+          games={matches}
+          stats={serverStats}
           onStartSetup={handleStartSetup}
           onLogout={handleLogout}
+          onLoadMore={() => loadMoreMatches(matchesPage + 1)}
+          hasMore={hasMoreMatches}
+          loading={loadingMatches}
         />
       )}
 

@@ -1,6 +1,14 @@
 import express from 'express';
 import dotenv from 'dotenv';
 import jwt from 'jsonwebtoken';
+import {
+    calculateChampionDaysForPeriod,
+    calculateHeadToHead,
+    calculateStats,
+    processMatchResult
+} from '../frontend/klask/src/klask/game-logic.ts';
+import { calculatePlayerStats, calculatePairStats } from '../frontend/klask/src/klask4/game-logic.ts';
+import { normalizeState, paginateGames, removeGameByDate, stateForClient } from './state-operations.ts';
 
 dotenv.config(); // load environment variables
 
@@ -110,34 +118,177 @@ if (LOCAL_MODE) {
     writeStateKlask4 = klask4Store.writeState;
 }
 
-function registerStateRoutes(basePath, readStateFn, writeStateFn, initialState, initializeCause = 'Initialize') {
+function registerStateRoutes(basePath, readStateFn, writeStateFn, initialState, statsFn, addMatchFn, initializeCause = 'Initialize') {
     app.get(basePath, async (req, res) => {
         try {
             const { data } = await readStateFn();
+            const state = normalizeState(initialState, data);
+            const stats = statsFn ? statsFn(state) : null;
 
             if (!data) {
-                await writeStateFn(initialState, null, initializeCause);
-                return res.json(initialState);
+                await writeStateFn(state, null, initializeCause);
             }
 
-            res.json(data);
+            res.json(stateForClient(state, stats));
         } catch (err) {
             console.error(`Failed to load state for ${basePath}`, err);
             return res.status(500).send(err.message);
         }
     });
 
+    app.get(`${basePath}/stats`, async (req, res) => {
+        try {
+            const { data } = await readStateFn();
+            const state = normalizeState(initialState, data);
+            const stats = statsFn ? statsFn(state) : null;
+            res.json(stats);
+        } catch (err) {
+            console.error(`Failed to load stats for ${basePath}`, err);
+            return res.status(500).send(err.message);
+        }
+    });
+
+    app.get(`${basePath}/matches`, async (req, res) => {
+        try {
+            const { data } = await readStateFn();
+            const state = normalizeState(initialState, data);
+            res.json(paginateGames(state, req.query.page, req.query.limit));
+        } catch (err) {
+            console.error(`Failed to load matches for ${basePath}`, err);
+            return res.status(500).send(err.message);
+        }
+    });
+
+    app.post(`${basePath}/matches`, async (req, res) => {
+        try {
+            const { data, sha } = await readStateFn();
+            const { cause, ...payload } = req.body;
+            const currentState = normalizeState(initialState, data);
+            const result = addMatchFn(currentState, payload);
+            const stats = statsFn ? statsFn(result.state) : null;
+
+            await writeStateFn(result.state, sha, cause || 'New game');
+            res.json({
+                ok: true,
+                match: result.match,
+                state: stateForClient(result.state, stats),
+                stats
+            });
+        } catch (err) {
+            console.error(`Failed to save match for ${basePath}`, err);
+            return res.status(500).send(err.message);
+        }
+    });
+
+    app.post(`${basePath}/matches/remove`, async (req, res) => {
+        try {
+            const { data, sha } = await readStateFn();
+            const { date, cause } = req.body;
+            const currentState = normalizeState(initialState, data);
+            const result = removeGameByDate(currentState, date);
+            const stats = statsFn ? statsFn(result.state) : null;
+
+            if (result.removed) {
+                await writeStateFn(result.state, sha, cause || 'Remove match');
+            }
+            res.json({
+                ok: true,
+                removed: result.removed,
+                state: stateForClient(result.state, stats),
+                stats
+            });
+        } catch (err) {
+            console.error(`Failed to remove match for ${basePath}`, err);
+            return res.status(500).send(err.message);
+        }
+    });
+
     app.post(basePath, async (req, res) => {
         try {
-            const { sha } = await readStateFn();
-            const { cause, ...state } = req.body;
-            await writeStateFn(state, sha, cause);
-            res.json({ ok: true });
+            const { data, sha } = await readStateFn();
+            const { cause, stats: _derivedStats, ...newState } = req.body;
+            const currentState = normalizeState(initialState, data);
+
+            // Merge newState with existing data (especially games)
+            const mergedState = {
+                ...currentState,
+                ...newState,
+                // Ensure games are preserved if they are not provided in the POST request
+                games: Array.isArray(newState.games) ? newState.games : currentState.games
+            };
+            const stats = statsFn ? statsFn(mergedState) : null;
+
+            await writeStateFn(mergedState, sha, cause);
+            res.json({
+                ok: true,
+                state: stateForClient(mergedState, stats),
+                stats
+            });
         } catch (err) {
             console.error(`Failed to save state for ${basePath}`, err);
             return res.status(500).send(err.message);
         }
     });
+}
+
+function calculateKlaskStats(data) {
+    const headToHead = Object.fromEntries(
+        data.players.map((player) => [player.id, calculateHeadToHead(player.id, data)])
+    );
+    const championshipDurations = Object.fromEntries(
+        data.championshipHistory.map((event, index) => {
+            const nextEvent = data.championshipHistory[index + 1];
+            const endDate = nextEvent ? new Date(nextEvent.date) : new Date();
+            const days = event.newChampionId
+                ? calculateChampionDaysForPeriod(event.newChampionId, new Date(event.date), endDate, data.games)
+                : 0;
+            return [event.date, days];
+        })
+    );
+
+    return {
+        playerStats: calculateStats(data),
+        headToHead,
+        championshipDurations
+    };
+}
+
+function addKlaskMatch(state, payload) {
+    const player1Id = Number(payload.player1Id);
+    const player2Id = Number(payload.player2Id);
+    const score1 = Number(payload.score1);
+    const score2 = Number(payload.score2);
+
+    if (player1Id === player2Id || !state.players.some((player) => player.id === player1Id) || !state.players.some((player) => player.id === player2Id)) {
+        throw new Error('A match requires two different known players');
+    }
+    if (!Number.isInteger(score1) || !Number.isInteger(score2) || (score1 !== 6 && score2 !== 6) || score1 === score2) {
+        throw new Error('Invalid match score');
+    }
+
+    state.championship = {
+        ...state.championship,
+        candidate: state.championship.candidate || (state.championship.challengerId
+            ? { playerId: state.championship.challengerId, remainingGames: 2 }
+            : null)
+    };
+    const { game } = processMatchResult(player1Id, player2Id, score1, score2, state);
+    return { state, match: game };
+}
+
+function addKlask4Match(state, match) {
+    if (!match || !Array.isArray(match.playerIds) || !Array.isArray(match.rounds) || !match.date) {
+        throw new Error('Invalid completed match');
+    }
+
+    return {
+        state: {
+            ...state,
+            games: [...state.games, match],
+            activeGame: null
+        },
+        match
+    };
 }
 
 // ===== Routes =====
@@ -166,8 +317,12 @@ registerStateRoutes(
         championship: {
             championId: null,
             challengerId: null
-        }
-    }
+        },
+        games: [],
+        championshipHistory: []
+    },
+    calculateKlaskStats,
+    addKlaskMatch
 );
 
 registerStateRoutes(
@@ -187,7 +342,12 @@ registerStateRoutes(
             games: [],
             activeGame: null
         }
-    }
+    },
+    (data) => ({
+        playerStats: calculatePlayerStats(data.players, data.games),
+        pairStats: calculatePairStats(data.players, data.games)
+    }),
+    addKlask4Match
 );
 
 // Export app as default

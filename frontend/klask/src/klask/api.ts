@@ -7,4 +7,4 @@ export const klaskApi = createStateClient({
   credentials: 'include',
 });
 
-export const { clearToken, hasToken, login, loadState, saveState } = klaskApi;
+export const { clearToken, hasToken, login, loadState, loadStats, loadMatches, saveState, saveMatch, removeMatch } = klaskApi;

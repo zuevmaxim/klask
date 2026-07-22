@@ -3,7 +3,7 @@ import PlayerStats from './PlayerStats';
 import PairStats from './PairStats';
 import GameHistory from './GameHistory';
 
-export default function MainScreen({ players, games, onStartSetup, onLogout }) {
+export default function MainScreen({ players, games, stats, onStartSetup, onLogout, onLoadMore, hasMore, loading }) {
   const canStartGame = players.length >= 4;
 
   return (
@@ -34,9 +34,9 @@ export default function MainScreen({ players, games, onStartSetup, onLogout }) {
         )}
       </div>
 
-      <PlayerStats players={players} games={games} />
-      <PairStats players={players} games={games} />
-      <GameHistory games={games} players={players} />
+      <PlayerStats players={players} games={games} stats={stats?.playerStats} />
+      <PairStats players={players} games={games} stats={stats?.pairStats} />
+      <GameHistory games={games} players={players} onLoadMore={onLoadMore} hasMore={hasMore} loading={loading} />
     </div>
   );
 }

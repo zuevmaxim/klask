@@ -1,7 +1,7 @@
 // @ts-nocheck
 import React from 'react';
 
-export default function GameHistory({ games, players }) {
+export default function GameHistory({ games, players, onLoadMore, hasMore, loading }) {
   const playerMap = Object.fromEntries(players.map(p => [p.id, p.name]));
   function getWinners(game) {
     const winsByPlayer = new Map(game.playerIds.map((id) => [id, 0]));
@@ -34,13 +34,13 @@ export default function GameHistory({ games, players }) {
     <section>
       <h2>Game History</h2>
       <div className="history-list">
-        {[...games].reverse().map((game, gi) => {
+        {games.map((game, gi) => {
           const winner = getWinners(game);
           return (
-            <div key={gi} className="history-item">
+            <div key={`${game.date}-${gi}`} className="history-item">
             <div className="history-header">
               <span className="history-date">
-                {new Date(game.date).toLocaleDateString()}
+                {new Date(game.date).toLocaleDateString()} {new Date(game.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
               </span>
               <span className="history-winner">
                 {winner.names.join(', ')} won ({winner.wins})
@@ -63,6 +63,7 @@ export default function GameHistory({ games, players }) {
           );
         })}
       </div>
+      {hasMore && <button className="load-more-btn" onClick={onLoadMore} disabled={loading}>{loading ? 'Loading...' : 'Load more'}</button>}
     </section>
   );
 }

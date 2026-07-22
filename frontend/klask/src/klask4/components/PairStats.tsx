@@ -2,10 +2,10 @@ import React from 'react';
 import { calculatePairStats } from '../game-logic';
 import SortableTable from '../../shared/SortableTable';
 
-export default function PairStats({ players, games }) {
-  const stats = calculatePairStats(players, games);
+export default function PairStats({ players, games, stats: serverStats }) {
+  const stats: any[] = serverStats || calculatePairStats(players, games);
 
-  if (games.length === 0 || stats.length === 0) {
+  if (stats.length === 0 || stats.every(s => s.roundsPlayed === 0)) {
     return (
       <section>
         <h2>Pair Stats</h2>
@@ -19,7 +19,7 @@ export default function PairStats({ players, games }) {
   return (
     <section>
       <h2>Pair Stats</h2>
-      <SortableTable
+      <SortableTable<any>
         columns={[
           { key: 'rank', label: '#', value: (_row, index) => index + 1 },
           { key: 'pair', label: 'Pair', value: (row) => row.names.join(' & '), render: (row) => row.names.join(' & ') },

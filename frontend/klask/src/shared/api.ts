@@ -38,6 +38,26 @@ export function createStateClient({ path, tokenKey, credentials }: CreateStateCl
     return res.json() as Promise<T>;
   }
 
+  async function loadStats<T = unknown>() {
+    const res = await fetch(`${API_URL}${path}/stats`, { headers: authHeaders(), credentials });
+    if (res.status === 401) {
+      clearToken();
+      throw new Error('Unauthorized');
+    }
+    if (!res.ok) throw new Error('Failed to load stats');
+    return res.json() as Promise<T>;
+  }
+
+  async function loadMatches<T = unknown>(page = 0, limit = 100) {
+    const res = await fetch(`${API_URL}${path}/matches?page=${page}&limit=${limit}`, { headers: authHeaders(), credentials });
+    if (res.status === 401) {
+      clearToken();
+      throw new Error('Unauthorized');
+    }
+    if (!res.ok) throw new Error('Failed to load matches');
+    return res.json() as Promise<T>;
+  }
+
   async function saveState<T>(state: T, cause: string) {
     const res = await fetch(`${API_URL}${path}`, {
       method: 'POST',
@@ -53,5 +73,35 @@ export function createStateClient({ path, tokenKey, credentials }: CreateStateCl
     return res.json();
   }
 
-  return { clearToken, hasToken, login, loadState, saveState };
+  async function saveMatch<T>(match: T, cause: string) {
+    const res = await fetch(`${API_URL}${path}/matches`, {
+      method: 'POST',
+      credentials,
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify({ ...(match as object), cause }),
+    });
+    if (res.status === 401) {
+      clearToken();
+      throw new Error('Unauthorized');
+    }
+    if (!res.ok) throw new Error('Failed to save match');
+    return res.json();
+  }
+
+  async function removeMatch(date: string, cause: string) {
+    const res = await fetch(`${API_URL}${path}/matches/remove`, {
+      method: 'POST',
+      credentials,
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify({ date, cause }),
+    });
+    if (res.status === 401) {
+      clearToken();
+      throw new Error('Unauthorized');
+    }
+    if (!res.ok) throw new Error('Failed to remove match');
+    return res.json();
+  }
+
+  return { clearToken, hasToken, login, loadState, loadStats, loadMatches, saveState, saveMatch, removeMatch };
 }

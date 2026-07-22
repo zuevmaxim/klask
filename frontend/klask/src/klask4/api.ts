@@ -6,4 +6,4 @@ export const klask4Api = createStateClient({
   tokenKey: AUTH_TOKEN_KEY,
 });
 
-export const { clearToken, hasToken, login, loadState, saveState } = klask4Api;
+export const { clearToken, hasToken, login, loadState, loadStats, loadMatches, saveState, saveMatch, removeMatch } = klask4Api;

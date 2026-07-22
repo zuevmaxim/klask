@@ -32,6 +32,7 @@ function runTests() {
         testProcessMatchResultFirstGame,
         testProcessMatchResultStoresEloSnapshot,
         testProcessMatchResultStoresEloSnapshotWhenPlayer2Wins,
+        testProcessMatchResultUsesProvidedFullState,
         testEloUnderdogWinIsWorthMore,
         testCalculateEloRatingsEmptyState,
         testCalculateEloRatingsReplaysGames,
@@ -118,6 +119,26 @@ function testProcessMatchResultFirstGame() {
     assertEquals(games[0].score1, 6, 'Score1 should be 6');
     assertEquals(games[0].score2, 4, 'Score2 should be 4');
     assertEquals(championship.championId, aliceId, 'Alice should be champion');
+}
+
+function testProcessMatchResultUsesProvidedFullState() {
+    const state = {
+        players: [{ id: 1, name: 'Alice' }, { id: 2, name: 'Bob' }],
+        championship: { championId: 1, candidate: { playerId: 2, remainingGames: 1 } },
+        games: [
+            { date: '2024-01-01T10:00:00Z', player1Id: 1, player2Id: 2, score1: 6, score2: 4 },
+            { date: '2024-01-01T11:00:00Z', player1Id: 1, player2Id: 2, score1: 6, score2: 3 }
+        ],
+        championshipHistory: []
+    };
+
+    const result = processMatchResult(1, 2, 6, 2, state, new Date('2024-01-02T10:00:00Z'));
+
+    assertEquals(state.games.length, 3, 'Provided state should receive the new game');
+    assert(result.game.rating.player1Before > ELO_INITIAL_RATING, 'Elo should include stored historical games');
+    assertEquals(state.championship.candidate, null, 'A candidate from the previous day should expire');
+    assertEquals(games.length, 0, 'The module-global game list should not be mutated');
+    assertEquals(calculateHeadToHead(1, state)[0].gamesAgainst, 3, 'Head-to-head should support the complete provided state');
 }
 
 function testProcessMatchResultStoresEloSnapshot() {
@@ -909,7 +930,7 @@ function testGetStateForSave() {
 
     assert(state.players !== undefined, 'State should have players');
     assert(state.championship !== undefined, 'State should have championship');
-    assert(state.games !== undefined, 'State should have games');
+    assert(state.games === undefined, 'State should NOT have games (excluded to avoid 413 error)');
     assert(state.championshipHistory !== undefined, 'State should have championshipHistory');
     assertEquals(state.players.length, 2, 'Should have 2 players in saved state');
     assert(state.championship.candidate && state.championship.candidate.playerId === players[1].id, 'Candidate should be serialized');

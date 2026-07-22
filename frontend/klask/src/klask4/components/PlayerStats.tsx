@@ -2,10 +2,10 @@ import React from 'react';
 import { calculatePlayerStats } from '../game-logic';
 import SortableTable from '../../shared/SortableTable';
 
-export default function PlayerStats({ players, games }) {
-  const stats = calculatePlayerStats(players, games);
+export default function PlayerStats({ players, games, stats: serverStats }) {
+  const stats: any[] = serverStats || calculatePlayerStats(players, games);
 
-  if (games.length === 0) {
+  if (stats.length === 0 || stats.every(s => s.roundsPlayed === 0)) {
     return (
       <section>
         <h2>Player Stats</h2>
@@ -17,7 +17,7 @@ export default function PlayerStats({ players, games }) {
   return (
     <section>
       <h2>Player Stats</h2>
-      <SortableTable
+      <SortableTable<any>
         columns={[
           { key: 'rank', label: '#', value: (_row, index) => index + 1 },
           { key: 'name', label: 'Player', value: (row) => row.name },

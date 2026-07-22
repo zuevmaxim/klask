@@ -231,7 +231,8 @@ export function buildStateForSave(players, games, activeGame, extraFields = {}) 
   return {
     ...extraFields,
     players,
-    games,
+    // We don't include games here to avoid 413 Content Too Large
+    // The server will preserve existing games if they are missing in POST
     activeGame: activeGame || null,
   };
 }
@@ -244,6 +245,7 @@ export function loadStateFromData(data) {
     players = [],
     games = [],
     activeGame = null,
+    stats = null,
     ...extraFields
   } = data || {};
 
@@ -251,6 +253,7 @@ export function loadStateFromData(data) {
     players,
     games,
     activeGame,
+    stats,
     extraFields,
   };
 }
