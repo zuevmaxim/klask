@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { normalizeState, paginateGames, removeGameByDate, stateForClient } from './state-operations.ts';
+import { normalizeState, paginateGames, removeGameByDate, stateForClient } from './state-operations.js';
 
 test('normalizes an empty store with a games array and strips games from the client state', () => {
     const state = normalizeState({ players: [], championshipHistory: [], games: [] }, null);

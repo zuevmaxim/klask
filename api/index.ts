@@ -6,9 +6,9 @@ import {
     calculateHeadToHead,
     calculateStats,
     processMatchResult
-} from '../frontend/klask/src/klask/game-logic.ts';
-import { calculatePlayerStats, calculatePairStats } from '../frontend/klask/src/klask4/game-logic.ts';
-import { normalizeState, paginateGames, removeGameByDate, stateForClient } from './state-operations.ts';
+} from '../frontend/klask/src/klask/game-logic.js';
+import { calculatePlayerStats, calculatePairStats } from '../frontend/klask/src/klask4/game-logic.js';
+import { normalizeState, paginateGames, removeGameByDate, stateForClient } from './state-operations.js';
 
 dotenv.config(); // load environment variables
 
